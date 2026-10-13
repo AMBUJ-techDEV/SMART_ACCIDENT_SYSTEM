@@ -1,0 +1,100 @@
+[2026-10-06 21:52:16] EMAIL to <testuser@example.com> | Subject: Safar Sarthi: Email Verification OTP Code
+Hello,
+
+Thank you for registering with SAFAR SARTHI — Smart Accident Detection & Emergency Response System.
+
+Your Email Verification OTP code is:
+    *** 916048 ***
+
+This OTP is valid for 10 minutes. Please enter this code in the registration portal to verify your email.
+
+Emergency Response Sentinel Team,
+SAFAR SARTHI ERSS-112 Network
+
+======================================================================
+[2026-10-06 21:52:16] EMAIL to <testuser@example.com> | Subject: Welcome to Safar Sarthi — Your Account Credentials & User ID
+Dear Rahul Sharma,
+
+Welcome to SAFAR SARTHI — Smart Accident Detection & Emergency Response System!
+
+Your citizen registration has been successfully verified across both your Mobile Number and Email ID.
+
+Here are your permanent login credentials:
+--------------------------------------------------------------------
+  User ID           : SS-USER-0003
+  Registered Email  : testuser@example.com
+  Mobile Number     : +91-9999888877
+  Password          : rahulPassword123
+  Blood Group       : B+
+  Aadhaar Ref       : 112233445566
+--------------------------------------------------------------------
+
+You can now log in using either your Registered Email/Mobile and Password at:
+http://localhost:5000
+
+Keep these credentials secure. In case of road emergencies, the app will instantly broadcast
+your medical details and live telemetry to ERSS-112, PCR Vans, and trauma hospitals.
+
+Stay Safe,
+SAFAR SARTHI Emergency Response System
+Ministry of Road Safety & ERSS-112 Network
+
+======================================================================
+[2026-10-06 21:55:25] EMAIL to <priya.verma@example.com> | Subject: Safar Sarthi: Email Verification OTP Code
+Hello,
+
+Thank you for registering with SAFAR SARTHI — Smart Accident Detection & Emergency Response System.
+
+Your Email Verification OTP code is:
+    *** 904692 ***
+
+This OTP is valid for 10 minutes. Please enter this code in the registration portal to verify your email.
+
+Emergency Response Sentinel Team,
+SAFAR SARTHI ERSS-112 Network
+
+======================================================================
+[2026-10-06 21:55:25] EMAIL to <priya.verma@example.com> | Subject: Welcome to Safar Sarthi — Your Account Credentials & User ID
+Dear Priya Verma,
+
+Welcome to SAFAR SARTHI — Smart Accident Detection & Emergency Response System!
+
+Your citizen registration has been successfully verified across both your Mobile Number and Email ID.
+
+Here are your permanent login credentials:
+--------------------------------------------------------------------
+  User ID           : SS-USER-0004
+  Registered Email  : priya.verma@example.com
+  Mobile Number     : +91-9123456789
+  Password          : priyaSecretPass2026
+  Blood Group       : AB-
+  Aadhaar Ref       : 998877665544
+--------------------------------------------------------------------
+
+You can now log in using either your Registered Email/Mobile and Password at:
+http://localhost:5000
+
+Keep these credentials secure. In case of road emergencies, the app will instantly broadcast
+your medical details and live telemetry to ERSS-112, PCR Vans, and trauma hospitals.
+
+Stay Safe,
+SAFAR SARTHI Emergency Response System
+Ministry of Road Safety & ERSS-112 Network
+
+======================================================================
+[2026-10-06 22:24:05] EMAIL to <citizen@example.com> | Subject: Safar Sarthi: Email Verification OTP Code
+Hello,
+
+Thank you for registering with SAFAR SARTHI — Smart Accident Detection & Emergency Response System.
+
+Your private Email Verification OTP code is:
+    *** 378424 ***
+
+This OTP is confidential and valid for 10 minutes. Please enter this code in the registration portal to verify your email.
+
+Never share this code with anyone.
+
+Emergency Response Sentinel Team,
+SAFAR SARTHI ERSS-112 Network
+
+======================================================================

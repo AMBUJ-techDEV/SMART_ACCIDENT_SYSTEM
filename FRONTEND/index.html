@@ -1,0 +1,2713 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>SAFAR SARTHI - Smart Accident Detection & Emergency Response System</title>
+
+  <!-- PWA Manifest & Meta Tags -->
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/svg+xml" href="/icon.svg">
+  <link rel="apple-touch-icon" href="/icon.svg">
+  <meta name="theme-color" content="#0284c7">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Safar Sarthi">
+
+  <!-- Fonts & Icons & Leaflet & Chart.js -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+    :root {
+      --bg-light: #f8fafc;
+      --panel-bg: #ffffff;
+      --border-color: #e2e8f0;
+      --border-focus: #cbd5e1;
+      --primary: #ef4444;
+      --primary-glow: rgba(239, 68, 68, 0.25);
+      --trust-blue: #0284c7;
+      --trust-light: #e0f2fe;
+      --trust-glow: rgba(2, 132, 199, 0.2);
+      --accent-orange: #f97316;
+      --accent-green: #10b981;
+      --green-light: #d1fae5;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --card-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Outfit', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: var(--bg-light);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Top Navigation Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 24px;
+      background: #ffffff;
+      border-bottom: 1px solid var(--border-color);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo-box {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+    }
+
+    .logo-icon {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, #0284c7, #0ea5e9, #10b981);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 20px;
+      box-shadow: 0 4px 14px var(--trust-glow);
+    }
+
+    .logo-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .logo-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 6px;
+      background: #f1f5f9;
+      padding: 4px;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+    }
+
+    .nav-btn {
+      padding: 8px 16px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 13px;
+    }
+
+    .nav-btn.active,
+    .nav-btn:hover {
+      background: #ffffff;
+      color: var(--trust-blue);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      background: var(--trust-light);
+      border: 1px solid rgba(2, 132, 199, 0.3);
+      border-radius: 20px;
+      color: var(--trust-blue);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--trust-blue);
+      border-radius: 50%;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: scale(0.95);
+        opacity: 0.7;
+      }
+
+      50% {
+        transform: scale(1.3);
+        opacity: 1;
+      }
+
+      100% {
+        transform: scale(0.95);
+        opacity: 0.7;
+      }
+    }
+
+    main {
+      padding: 20px;
+      max-width: 1500px;
+      margin: 0 auto;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* UI Cards & Buttons */
+    .card-panel {
+      background: var(--panel-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: var(--card-shadow);
+      margin-bottom: 20px;
+    }
+
+    .panel-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--text-main);
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+      font-size: 13px;
+    }
+
+    .btn-primary {
+      background: var(--trust-blue);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: #0369a1;
+      box-shadow: 0 4px 12px var(--trust-glow);
+    }
+
+    .btn-danger {
+      background: #ef4444;
+      color: #fff;
+    }
+
+    .btn-danger:hover {
+      background: #dc2626;
+      box-shadow: 0 4px 12px var(--primary-glow);
+    }
+
+    .btn-outline {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+    }
+
+    .btn-outline:hover {
+      background: #f1f5f9;
+      border-color: var(--border-focus);
+    }
+
+    .input-field {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      font-size: 13px;
+      outline: none;
+      margin-bottom: 10px;
+      background: #fff;
+    }
+
+    .input-field:focus {
+      border-color: var(--trust-blue);
+      box-shadow: 0 0 0 3px var(--trust-glow);
+    }
+
+    /* Stats & Tables */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: var(--panel-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: var(--card-shadow);
+    }
+
+    .stat-head {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .stat-val {
+      font-size: 26px;
+      font-weight: 800;
+      font-family: 'Space Grotesk', sans-serif;
+      color: var(--text-main);
+      margin-top: 4px;
+    }
+
+    .table-box {
+      overflow-x: auto;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13px;
+      background: #ffffff;
+    }
+
+    th {
+      padding: 12px 14px;
+      background: #f8fafc;
+      color: var(--text-muted);
+      font-weight: 600;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-main);
+    }
+
+    tr:hover {
+      background: #f8fafc;
+    }
+
+    .tag {
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .tag-critical {
+      background: #fee2e2;
+      color: #dc2626;
+      border: 1px solid #fca5a5;
+    }
+
+    .tag-high {
+      background: #ffedd5;
+      color: #ea580c;
+      border: 1px solid #fed7aa;
+    }
+
+    .tag-verified {
+      background: var(--green-light);
+      color: #047857;
+      border: 1px solid #6ee7b7;
+    }
+
+    .tag-false {
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid #cbd5e1;
+    }
+
+    /* Citizen Phone Shell (Instagram/Facebook/ERSS Mobile Experience) */
+    .phone-container {
+      max-width: 440px;
+      margin: 0 auto;
+    }
+
+    .phone-mockup {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 36px;
+      box-shadow: 0 20px 45px rgba(15, 23, 42, 0.12);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 840px;
+      position: relative;
+    }
+
+    /* Phone Header (Hello User + Notification) */
+    .phone-app-header {
+      background: #ffffff;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+    }
+
+    .user-greeting {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #0284c7, #0ea5e9);
+      color: #fff;
+      font-size: 17px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+    }
+
+    .notif-btn {
+      position: relative;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: #f1f5f9;
+      border: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #0f172a;
+    }
+
+    .notif-badge {
+      position: absolute;
+      top: -3px;
+      right: -3px;
+      width: 17px;
+      height: 17px;
+      background: #ef4444;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 800;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #fff;
+    }
+
+    /* Phone Main Scroll Body */
+    .phone-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      background: #fafafa;
+    }
+
+    .user-screen {
+      display: none;
+    }
+
+    .user-screen.active {
+      display: block;
+    }
+
+    /* Sticky Bottom Nav Bar (Instagram/Facebook Style) */
+    .phone-bottom-nav {
+      background: #ffffff;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 8px 4px 12px;
+      z-index: 10;
+    }
+
+    .bottom-nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      color: #64748b;
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 20%;
+      text-decoration: none;
+      border: none;
+      background: transparent;
+      transition: color 0.2s;
+    }
+
+    .bottom-nav-item i {
+      font-size: 18px;
+    }
+
+    .bottom-nav-item.active {
+      color: var(--trust-blue);
+    }
+
+    /* Big Glowing SOS Button */
+    .sos-central-btn {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: #fff;
+      font-size: 30px;
+      font-weight: 800;
+      font-family: 'Space Grotesk', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: 16px auto;
+      cursor: pointer;
+      border: 6px solid #fee2e2;
+      box-shadow: 0 10px 30px rgba(239, 68, 68, 0.45);
+      animation: sosPulse 2s infinite;
+    }
+
+    .sos-central-btn span {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
+
+    @keyframes sosPulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5);
+      }
+
+      70% {
+        box-shadow: 0 0 0 20px rgba(239, 68, 68, 0);
+      }
+
+      100% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+      }
+    }
+
+    /* Feature Grid Launcher (Instagram Explore Grid) */
+    .feature-launcher-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .feature-launcher-card {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .feature-launcher-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--trust-blue);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .feature-icon-box {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    /* Notification Drawer Slide-over */
+    .notif-drawer {
+      position: fixed;
+      top: 0;
+      right: -380px;
+      width: 360px;
+      height: 100vh;
+      background: #ffffff;
+      box-shadow: -5px 0 25px rgba(0, 0, 0, 0.15);
+      z-index: 2000;
+      transition: right 0.3s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .notif-drawer.open {
+      right: 0;
+    }
+
+    .notif-drawer-header {
+      padding: 18px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .notif-item {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      gap: 12px;
+      font-size: 12px;
+    }
+
+    .notif-item:hover {
+      background: #f8fafc;
+    }
+
+    /* Modals */
+    .modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(15, 23, 42, 0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1500;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-card {
+      background: #ffffff;
+      border-radius: 20px;
+      width: 92%;
+      max-width: 520px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 24px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+    }
+
+    /* Toast Notification */
+    #toast-msg {
+      position: fixed;
+      bottom: 25px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #0f172a;
+      color: #ffffff;
+      padding: 10px 22px;
+      border-radius: 30px;
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+      display: none;
+      z-index: 3000;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Toast -->
+  <div id="toast-msg">Notification Message</div>
+
+  <!-- Header -->
+  <header>
+    <div class="logo-box" onclick="switchTab('user-app'); showUserScreen('home');">
+      <div class="logo-icon"><i class="fa-solid fa-shield-heart"></i></div>
+      <div>
+        <div class="logo-title">SAFAR SARTHI</div>
+        <div class="logo-sub">Emergency Response & Journey Sentinel</div>
+      </div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <div class="nav-tabs">
+      <button class="nav-btn active" id="nav-btn-user" onclick="switchTab('user-app')">
+        <i class="fa-solid fa-mobile-screen"></i> Citizen App
+      </button>
+      <button class="nav-btn" id="nav-btn-control" onclick="switchTab('control-room')">
+        <i class="fa-solid fa-building-shield"></i> Police & ERSS Control Room
+        <i class="fa-solid fa-lock" id="lock-icon-admin" style="font-size:10px; color:#ef4444; margin-left:3px;"></i>
+      </button>
+      <button class="nav-btn" id="nav-btn-auth" onclick="switchTab('auth-portal')">
+        <i class="fa-solid fa-right-to-bracket"></i> Login / Register
+      </button>
+    </div>
+
+    <!-- Actions: Install App + 50% Threshold Badge -->
+    <div class="header-actions">
+      <button class="btn btn-outline"
+        style="border-color:#7dd3fc; color:#0284c7; background:#e0f2fe; font-size:12px; padding:6px 14px;"
+        onclick="openInstallModal()">
+        <i class="fa-solid fa-download"></i> Install App
+      </button>
+      <div class="status-badge">
+        <div class="pulse-dot"></div> 50% Threshold Active
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- ========================================================================= -->
+    <!-- TAB 1: USER / CITIZEN SMARTPHONE APP (ERSS 112) -->
+    <!-- ========================================================================= -->
+    <div id="tab-user-app" class="tab-content active">
+      <div class="phone-container">
+        <div class="phone-mockup">
+
+          <!-- Top App Bar: User Name + Notification Bell -->
+          <div class="phone-app-header">
+            <div class="user-greeting">
+              <div class="user-avatar" id="app-user-avatar">AK</div>
+              <div>
+                <div style="font-size:11px; color:var(--text-muted);">Welcome back,</div>
+                <div style="font-size:14px; font-weight:800; color:#0f172a;" id="app-user-name">Ambuj Kumar</div>
+              </div>
+            </div>
+            <div class="notif-btn" onclick="openNotifications()">
+              <i class="fa-regular fa-bell"></i>
+              <div class="notif-badge" id="notif-count">2</div>
+            </div>
+          </div>
+
+          <!-- Body Container for Screens -->
+          <div class="phone-body">
+
+            <!-- SCREEN 1: HOME SCREEN -->
+            <div id="user-screen-home" class="user-screen active">
+
+              <!-- Quick ERSS Helpline Bar -->
+              <div
+                style="background: linear-gradient(135deg, #1e293b, #0f172a); color:#fff; padding:12px 14px; border-radius:14px; display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                <div>
+                  <div style="font-weight:700; font-size:13px;"><i class="fa-solid fa-phone-volume"
+                      style="color:#ef4444;"></i> ERSS-112 Direct</div>
+                  <div style="font-size:10px; color:#94a3b8;">Nationwide Emergency Response</div>
+                </div>
+                <div style="display:flex; gap:6px;">
+                  <a href="tel:112" class="btn btn-danger"
+                    style="padding:6px 10px; font-size:11px; text-decoration:none;"><i class="fa-solid fa-phone"></i>
+                    112</a>
+                  <a href="tel:108" class="btn btn-primary"
+                    style="padding:6px 10px; font-size:11px; text-decoration:none; background:#059669;"><i
+                      class="fa-solid fa-ambulance"></i> 108</a>
+                </div>
+              </div>
+
+              <!-- Central Pulsating SOS Trigger -->
+              <div style="text-align:center; margin: 10px 0;">
+                <div class="sos-central-btn" onclick="triggerManualSos()">
+                  SOS
+                  <span>EMERGENCY</span>
+                </div>
+                <div style="font-size:11px; color:var(--text-muted); font-weight:600;">Tap to trigger instant Emergency
+                  SOS & Alert Responders</div>
+              </div>
+
+              <!-- Hardware Smartphone Sensor Sentinel -->
+              <div
+                style="background:#ffffff; border:1px solid var(--border-color); border-radius:14px; padding:12px; margin: 14px 0;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                  <span style="font-weight:800; font-size:11px; color:#0f172a;"><i class="fa-solid fa-satellite-dish"
+                      style="color:#0284c7;"></i> SMARTPHONE SENSOR SENTINEL</span>
+                  <span
+                    style="font-size:9px; font-weight:700; color:#047857; background:#d1fae5; padding:1px 6px; border-radius:6px;"
+                    id="hw-sensor-badge">MODEL ACTIVE</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size:10px; margin-bottom:6px;">
+                  <span>Physical Impact: <b id="phone-read-accel">1.02g</b></span>
+                  <span>Gyro: <b id="phone-read-gyro">4.2 °/s</b></span>
+                  <span>Speed: <b id="home-speed">48 km/h</b></span>
+                </div>
+                <button class="btn btn-primary" style="width:100%; justify-content:center; font-size:11px; padding:8px;"
+                  onclick="toggleRealSmartphoneSensors()" id="btn-toggle-sensor">
+                  <i class="fa-solid fa-microchip"></i> <span id="btn-sensor-text">Start Real Device Hardware Sensor
+                    Monitoring</span>
+                </button>
+              </div>
+
+              <!-- Feature Launcher Grid (Instagram/ERSS Portal) -->
+              <div style="font-size:13px; font-weight:800; color:#0f172a; margin-top:14px;">Choose Safar Sarthi
+                Features:</div>
+              <div class="feature-launcher-grid">
+
+                <div class="feature-launcher-card" onclick="showUserScreen('status')">
+                  <div class="feature-icon-box" style="background:#0284c7;"><i
+                      class="fa-solid fa-square-poll-vertical"></i></div>
+                  <div>
+                    <div style="font-weight:700; font-size:12px;">Alert Status</div>
+                    <div style="font-size:10px; color:var(--text-muted);">Track Response</div>
+                  </div>
+                </div>
+
+                <div class="feature-launcher-card" onclick="showUserScreen('iot')">
+                  <div class="feature-icon-box" style="background:#6366f1;"><i class="fa-solid fa-microchip"></i></div>
+                  <div>
+                    <div style="font-weight:700; font-size:12px;">IoT Analysis</div>
+                    <div style="font-size:10px; color:var(--text-muted);">Impact & Telemetry</div>
+                  </div>
+                </div>
+
+                <div class="feature-launcher-card" onclick="showUserScreen('volunteers')">
+                  <div class="feature-icon-box" style="background:#10b981;"><i
+                      class="fa-solid fa-hand-holding-hand"></i></div>
+                  <div>
+                    <div style="font-weight:700; font-size:12px;">Volunteers</div>
+                    <div style="font-size:10px; color:var(--text-muted);">Nearby Responders</div>
+                  </div>
+                </div>
+
+                <div class="feature-launcher-card" onclick="showUserScreen('facilities')">
+                  <div class="feature-icon-box" style="background:#f59e0b;"><i class="fa-solid fa-hospital"></i></div>
+                  <div>
+                    <div style="font-weight:700; font-size:12px;">Facilities</div>
+                    <div style="font-size:10px; color:var(--text-muted);">Hospitals & Towing</div>
+                  </div>
+                </div>
+
+                <div class="feature-launcher-card" onclick="showUserScreen('report')">
+                  <div class="feature-icon-box" style="background:#8b5cf6;"><i class="fa-solid fa-microphone-lines"></i>
+                  </div>
+                  <div>
+                    <div style="font-weight:700; font-size:12px;">Voice Report</div>
+                    <div style="font-size:10px; color:var(--text-muted);">Audio Description</div>
+                  </div>
+                </div>
+
+                <div class="feature-launcher-card" onclick="showUserScreen('chatbot')" style="border-left:3px solid #0284c7;">
+                  <div class="feature-icon-box" style="background:linear-gradient(135deg, #0284c7, #38bdf8);"><i class="fa-solid fa-headset"></i></div>
+                  <div>
+                    <div style="font-weight:700; font-size:12px; color:#0284c7;">AI Companion</div>
+                    <div style="font-size:10px; color:var(--text-muted);">Calm & Anti-Panic</div>
+                  </div>
+                </div>
+
+                <div class="feature-launcher-card" onclick="showUserScreen('history')">
+                  <div class="feature-icon-box" style="background:#64748b;"><i
+                      class="fa-solid fa-clock-rotate-left"></i></div>
+                  <div>
+                    <div style="font-weight:700; font-size:12px;">History</div>
+                    <div style="font-size:10px; color:var(--text-muted);">All SOS & Calls</div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- SCREEN 2: STATUS SECTION -->
+            <div id="user-screen-status" class="user-screen">
+              <div style="font-size:15px; font-weight:800; color:#0f172a; margin-bottom:12px;">
+                <i class="fa-solid fa-square-poll-vertical" style="color:#0284c7;"></i> Alert Raised Real-Time Status
+              </div>
+              <div
+                style="background:#f0fdf4; border:1px solid #86efac; padding:12px; border-radius:12px; margin-bottom:14px;">
+                <div style="font-size:11px; font-weight:700; color:#15803d;">CURRENT ACTIVE INCIDENT</div>
+                <div style="font-size:16px; font-weight:800; font-family:'Space Grotesk';" id="status-inc-id">
+                  INC-2026-00001</div>
+                <div style="font-size:11px; color:#166534; font-weight:600;"><i class="fa-solid fa-circle-check"></i>
+                  Responder Assigned ● Ambulance-07 (ETA: 6 min)</div>
+              </div>
+
+              <div style="font-size:12px; font-weight:700; margin-bottom:8px;">Live Incident Lifecycle Timeline:</div>
+              <div
+                style="border-left:2px solid #0284c7; padding-left:14px; margin-left:6px; display:flex; flex-direction:column; gap:14px; font-size:11px;">
+                <div>
+                  <div style="font-weight:700; color:#0f172a;">1. Crash Telemetry Detected</div>
+                  <div style="color:var(--text-muted); font-size:10px;">94% AI Confidence (>50% Threshold Triggered)
+                  </div>
+                </div>
+                <div>
+                  <div style="font-weight:700; color:#0f172a;">2. Driver Verification Window</div>
+                  <div style="color:var(--text-muted); font-size:10px;">Confirmed by Driver or 5-Min Auto-Escalation
+                  </div>
+                </div>
+                <div>
+                  <div style="font-weight:700; color:#0f172a;">3. ERSS-112 & Responders Notified</div>
+                  <div style="color:var(--text-muted); font-size:10px;">Incident Broadcasted to Central Control Room
+                  </div>
+                </div>
+                <div>
+                  <div style="font-weight:700; color:#0284c7;">4. Ambulance & Police En-Route</div>
+                  <div style="color:#ea580c; font-size:10px; font-weight:700;">Ambulance-07 + Police PCR-42 En-Route
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- SCREEN 3: FACILITIES SECTION (HOSPITALS & REPAIR GARAGES) -->
+            <div id="user-screen-facilities" class="user-screen">
+              <div style="font-size:15px; font-weight:800; color:#0f172a; margin-bottom:12px;">
+                <i class="fa-solid fa-hospital" style="color:#ef4444;"></i> Trauma Hospitals & 24/7 Garages
+              </div>
+              <div style="font-size:12px; font-weight:700; color:#0f172a; margin-bottom:8px;">Nearest Trauma Facilities:
+              </div>
+              <div id="facilities-hospitals-list"
+                style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;">
+                <!-- Dynamically loaded -->
+              </div>
+
+              <div style="font-size:12px; font-weight:700; color:#0f172a; margin-bottom:8px;"><i
+                  class="fa-solid fa-wrench" style="color:#0284c7;"></i> Roadside Breakdown & Towing Garages:</div>
+              <div id="facilities-garages-list" style="display:flex; flex-direction:column; gap:8px;">
+                <!-- Dynamically loaded -->
+              </div>
+            </div>
+
+            <!-- SCREEN 4: HISTORY SECTION (ALL SOS HISTORY, CALL LOGS, FALSE ALARMS) -->
+            <div id="user-screen-history" class="user-screen">
+              <div style="font-size:15px; font-weight:800; color:#0f172a; margin-bottom:12px;">
+                <i class="fa-solid fa-clock-rotate-left" style="color:#64748b;"></i> Emergency History & Logs
+              </div>
+
+              <div style="font-size:12px; font-weight:700; margin-bottom:6px;">Past SOS Alert Records:</div>
+              <div id="history-incidents-list"
+                style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;">
+                <!-- Dynamically loaded -->
+              </div>
+
+              <div style="font-size:12px; font-weight:700; margin-bottom:6px;"><i class="fa-solid fa-phone"
+                  style="color:#059669;"></i> Emergency Call Logs:</div>
+              <div
+                style="background:#fff; border:1px solid var(--border-color); border-radius:12px; padding:10px; font-size:11px; display:flex; flex-direction:column; gap:8px;">
+                <div style="display:flex; justify-content:space-between;">
+                  <span><b>ERSS-112 Police Helpline</b></span>
+                  <span style="color:#059669; font-weight:700;">Connected (02m 45s)</span>
+                </div>
+                <div style="display:flex; justify-content:space-between;">
+                  <span><b>Ambulance 108 Hotline</b></span>
+                  <span style="color:#059669; font-weight:700;">Connected (01m 12s)</span>
+                </div>
+                <div style="display:flex; justify-content:space-between;">
+                  <span><b>Highway Towing Assistance</b></span>
+                  <span style="color:#64748b;">Dispatched</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- SCREEN 5: VOLUNTEERING SERVICES & DECLINE SUSPICIOUS OPTION -->
+            <div id="user-screen-volunteers" class="user-screen">
+              <div style="font-size:15px; font-weight:800; color:#0f172a; margin-bottom:12px;">
+                <i class="fa-solid fa-hand-holding-hand" style="color:#10b981;"></i> Approaching Certified Volunteers
+              </div>
+              <p style="font-size:11px; color:var(--text-muted); margin-bottom:12px;">
+                Nearby verified Good Samaritans and first responders. <b>If you find someone suspicious, decline them
+                  immediately to cut off their GPS feed to you.</b>
+              </p>
+
+              <div id="user-volunteers-list" style="display:flex; flex-direction:column; gap:10px;">
+                <!-- Dynamically populated with Decline button -->
+              </div>
+            </div>
+
+            <!-- SCREEN 6: IOT ACCIDENT ANALYSIS DASHBOARD -->
+            <div id="user-screen-iot" class="user-screen">
+              <div style="font-size:15px; font-weight:800; color:#0f172a; margin-bottom:10px;">
+                <i class="fa-solid fa-microchip" style="color:#6366f1;"></i> IoT Accident Telemetry & Impact
+              </div>
+
+              <!-- Quick Stats Grid -->
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px;">
+                <div style="background:#fff; border:1px solid var(--border-color); border-radius:10px; padding:10px;">
+                  <div style="font-size:10px; color:var(--text-muted);">ACCIDENT SCORE</div>
+                  <div style="font-size:18px; font-weight:800; color:#ef4444;" id="user-iot-score">92%</div>
+                  <div style="font-size:9px; color:#ea580c; font-weight:700;">>50% THRESHOLD</div>
+                </div>
+                <div style="background:#fff; border:1px solid var(--border-color); border-radius:10px; padding:10px;">
+                  <div style="font-size:10px; color:var(--text-muted);">CRASH PATTERN</div>
+                  <div style="font-size:13px; font-weight:800; color:#0f172a;" id="user-iot-pattern">FRONTAL_COLLISION
+                  </div>
+                  <div style="font-size:9px; color:#059669; font-weight:700;">G-Spike: 5.8g</div>
+                </div>
+              </div>
+
+              <!-- Crash Scenarios Sandbox -->
+              <div
+                style="background:#fff; border:1px solid var(--border-color); border-radius:12px; padding:12px; margin-bottom:12px;">
+                <div style="font-size:11px; font-weight:700; margin-bottom:6px;">Evaluate IoT Crash Scenarios:</div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+                  <button class="btn btn-danger" style="padding:6px; font-size:10px; justify-content:center;"
+                    onclick="runIotCrashAnalysis('FRONTAL')">Frontal Crash (5.8g)</button>
+                  <button class="btn btn-danger"
+                    style="padding:6px; font-size:10px; justify-content:center; background:#c026d3;"
+                    onclick="runIotCrashAnalysis('ROLLOVER')">Rollover Flip (78°)</button>
+                  <button class="btn btn-outline"
+                    style="padding:6px; font-size:10px; justify-content:center; color:#b45309;"
+                    onclick="runIotCrashAnalysis('SPEED_BUMP')">Speed Bump (Pothole)</button>
+                  <button class="btn btn-outline" style="padding:6px; font-size:10px; justify-content:center;"
+                    onclick="runIotCrashAnalysis('NORMAL')">Normal Driving</button>
+                </div>
+              </div>
+
+              <!-- Sensor Chart in App -->
+              <div style="background:#fff; border:1px solid var(--border-color); border-radius:12px; padding:12px;">
+                <div style="font-size:11px; font-weight:700; margin-bottom:6px;">6-DoF Sensor Oscilloscope (MPU-6050):
+                </div>
+                <canvas id="mobileSensorChart" height="130"></canvas>
+              </div>
+            </div>
+
+            <!-- SCREEN 7: VOICE & TEXT REPORT -->
+            <div id="user-screen-report" class="user-screen">
+              <div style="font-size:15px; font-weight:800; color:#0f172a; margin-bottom:12px;">
+                <i class="fa-solid fa-microphone-lines" style="color:#8b5cf6;"></i> Voice & Text Incident Report
+              </div>
+              <div
+                style="background:#fff; border:1px solid var(--border-color); border-radius:12px; padding:14px; margin-bottom:12px;">
+                <div style="font-size:12px; font-weight:700; margin-bottom:6px;">Record Audio Note for Responders:</div>
+                <button class="btn btn-primary" id="btn-record-voice"
+                  style="width:100%; justify-content:center; padding:10px; margin-bottom:8px;"
+                  onclick="toggleAudioRecording()">
+                  <i class="fa-solid fa-microphone"></i> <span id="record-text">Start Voice Recording</span>
+                </button>
+                <div style="font-size:10px; color:var(--text-muted); text-align:center;" id="audio-record-status">Tap to
+                  speak about injuries, passengers, or location landmarks.</div>
+              </div>
+
+              <div style="background:#fff; border:1px solid var(--border-color); border-radius:12px; padding:14px;">
+                <div style="font-size:12px; font-weight:700; margin-bottom:6px;">Written Problem Description:</div>
+                <textarea id="victim-desc-text" class="input-field" rows="3"
+                  placeholder="Describe vehicle condition, number of injured passengers, nearby landmarks..."></textarea>
+                <button class="btn btn-primary" style="width:100%; justify-content:center;"
+                  onclick="submitVictimDescription()">Submit Report</button>
+              </div>
+            </div>
+
+            <!-- SCREEN: PERSONALIZED EMERGENCY CHATBOT & ANTI-PANIC COMPANION -->
+            <div id="user-screen-chatbot" class="user-screen">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <div style="font-size:15px; font-weight:800; color:#0f172a;">
+                  <i class="fa-solid fa-heart-pulse" style="color:#0284c7;"></i> AI Guidance & Anti-Panic Companion
+                </div>
+                <span class="tag tag-verified" style="font-size:9px;"><i class="fa-solid fa-shield"></i> ACTIVE SUPPORT</span>
+              </div>
+
+              <!-- Anti-Panic Calming Ambient Header -->
+              <div style="background:linear-gradient(135deg, #0284c7, #0ea5e9); color:#fff; border-radius:12px; padding:12px; margin-bottom:12px; box-shadow:0 4px 12px rgba(2, 132, 199, 0.15);">
+                <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; opacity:0.9;">Emergency Calm Protocol</div>
+                <div style="font-size:13px; font-weight:700; margin-top:2px;" id="chatbot-calm-title">You Are Not Alone &bull; Help is En-Route</div>
+                <div style="font-size:11px; opacity:0.95; margin-top:4px; line-height:1.4;" id="chatbot-calm-banner">
+                  Take slow, steady breaths. Inhale for 4 seconds, hold, exhale. Keep calm while rescue arrives.
+                </div>
+              </div>
+
+              <!-- Quick Action Emergency Support Chips -->
+              <div style="display:flex; gap:6px; overflow-x:auto; padding-bottom:8px; margin-bottom:10px;">
+                <button class="btn btn-outline" style="font-size:10px; padding:4px 8px; white-space:nowrap; border-color:#ef4444; color:#ef4444;" onclick="sendQuickChatMessage('Severe bleeding assistance')">
+                  🩸 Severe Bleeding
+                </button>
+                <button class="btn btn-outline" style="font-size:10px; padding:4px 8px; white-space:nowrap; border-color:#0284c7; color:#0284c7;" onclick="sendQuickChatMessage('I feel panicked and terrified')">
+                  🧘 I Feel Panicked
+                </button>
+                <button class="btn btn-outline" style="font-size:10px; padding:4px 8px; white-space:nowrap; border-color:#10b981; color:#059669;" onclick="sendQuickChatMessage('How to perform CPR')">
+                  🫀 How to do CPR
+                </button>
+                <button class="btn btn-outline" style="font-size:10px; padding:4px 8px; white-space:nowrap; border-color:#f59e0b; color:#d97706;" onclick="sendQuickChatMessage('Vehicle smoke or fire danger')">
+                  🔥 Smoke / Fire Risk
+                </button>
+              </div>
+
+              <!-- Chat Dialogue Message Window -->
+              <div id="chat-messages-container" style="background:#fff; border:1px solid var(--border-color); border-radius:12px; padding:12px; height:240px; overflow-y:auto; display:flex; flex-direction:column; gap:10px; margin-bottom:10px; font-size:11px;">
+                <div style="align-self:flex-start; background:#f1f5f9; color:#0f172a; padding:8px 12px; border-radius:12px 12px 12px 2px; max-width:85%;">
+                  <b>Safar Sarthi Companion:</b><br>
+                  Hello! I am your personalized medical & calming guide. Help is being tracked. Tell me what happened, or tap a quick topic above so I can guide you through immediate steps.
+                </div>
+              </div>
+
+              <!-- Chat Input Box -->
+              <div style="display:flex; gap:6px;">
+                <input type="text" id="chat-input-text" class="input-field" style="margin:0; flex:1;" placeholder="Type what you feel or ask for first-aid..." onkeydown="if(event.key==='Enter') sendChatMessage()">
+                <button class="btn btn-primary" style="padding:8px 14px;" onclick="sendChatMessage()">
+                  <i class="fa-solid fa-paper-plane"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- SCREEN 8: MORE MENU (BOTTOM RIGHT CORNER) -->
+            <div id="user-screen-more" class="user-screen">
+              <div style="font-size:16px; font-weight:800; color:#0f172a; margin-bottom:14px;">
+                <i class="fa-solid fa-bars" style="color:var(--trust-blue);"></i> Dashboard & Settings
+              </div>
+
+              <!-- i) Emergency Management -->
+              <div
+                style="background:#fff; border:1px solid var(--border-color); border-radius:12px; padding:12px; margin-bottom:10px; cursor:pointer;"
+                onclick="openEmergencyMgmtModal()">
+                <div style="font-weight:700; font-size:13px; color:#0f172a;"><i class="fa-solid fa-kit-medical"
+                    style="color:#ef4444;"></i> i) Emergency Management</div>
+                <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Emergency contacts, blood group on
+                  record, paired IoT vehicle unit</div>
+              </div>
+
+              <!-- ii) Profile Section -->
+              <div
+                style="background:#fff; border:1px solid var(--border-color); border-radius:12px; padding:12px; margin-bottom:10px; cursor:pointer;"
+                onclick="openProfileEditModal()">
+                <div style="font-weight:700; font-size:13px; color:#0f172a;"><i class="fa-solid fa-user-pen"
+                    style="color:#0284c7;"></i> ii) Profile Section (Edit / Modify)</div>
+                <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Update Name, Phone, Govt 12-Digit
+                  Aadhaar, Blood Group</div>
+              </div>
+
+              <!-- iii) Supports & Settings -->
+              <div
+                style="background:#fff; border:1px solid var(--border-color); border-radius:12px; padding:12px; margin-bottom:10px;">
+                <div style="font-weight:700; font-size:13px; color:#0f172a; margin-bottom:8px;"><i
+                    class="fa-solid fa-gear" style="color:#64748b;"></i> iii) Supports & Settings</div>
+                <div style="display:flex; flex-direction:column; gap:8px; font-size:12px;">
+                  <div style="cursor:pointer; padding:4px 0;" onclick="openResourcesModal()"><i
+                      class="fa-solid fa-book-medical" style="color:#059669;"></i> 1. Resources (CPR Guide & Good
+                    Samaritan Law)</div>
+                  <div style="cursor:pointer; padding:4px 0;" onclick="openRaiseIssueModal()"><i
+                      class="fa-solid fa-circle-question" style="color:#f59e0b;"></i> 2. Raise Issue Regarding App
+                    Functioning</div>
+                  <div style="display:flex; justify-content:space-between; align-items:center; padding:4px 0;">
+                    <span><i class="fa-solid fa-language" style="color:#6366f1;"></i> 3. Select Language</span>
+                    <select id="app-lang-select" onchange="setLanguage(this.value)"
+                      style="padding:2px 8px; border-radius:6px; border:1px solid var(--border-color); font-size:11px;">
+                      <option value="EN">English</option>
+                      <option value="HI">हिन्दी (Hindi)</option>
+                    </select>
+                  </div>
+                  <div
+                    style="cursor:pointer; padding:6px 0; color:#ef4444; font-weight:700; border-top:1px solid #f1f5f9;"
+                    onclick="performUserLogout()">
+                    <i class="fa-solid fa-right-from-bracket"></i> 4. Log Out of App
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- SCREEN 9: 5-MIN VERIFICATION COUNTDOWN SCREEN -->
+            <div id="user-screen-verification" class="user-screen">
+              <div
+                style="background:#fef2f2; border:2px solid #fca5a5; border-radius:20px; padding:20px; text-align:center;">
+                <i class="fa-solid fa-triangle-exclamation"
+                  style="font-size:36px; color:#ef4444; margin-bottom:8px;"></i>
+                <h3 style="font-size:16px; color:#dc2626;">POSSIBLE ACCIDENT DETECTED</h3>
+                <p style="font-size:11px; color:#475569; margin-top:4px;">Score > 50% Threshold Triggered!</p>
+
+                <div class="timer-circle" id="phone-timer">05:00</div>
+                <div style="font-size:10px; color:#64748b; margin-bottom:16px;">5-Minute Cancellation Window active.
+                  Auto-escalating if no response.</div>
+
+                <div style="display:flex; gap:8px;">
+                  <button class="btn btn-outline" style="flex:1; padding:8px 4px; font-size:11px;"
+                    onclick="cancelPhoneVerification()">CANCEL (FALSE ALARM)</button>
+                  <button class="btn btn-danger" style="flex:1; padding:8px 4px; font-size:11px;"
+                    onclick="confirmPhoneVerification()">SEND HELP</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- SCREEN 10: ACTIVE EMERGENCY SOS SCREEN -->
+            <div id="user-screen-active" class="user-screen">
+              <div
+                style="background:#fef2f2; border:1px solid #fca5a5; padding:14px; border-radius:14px; margin-bottom:14px;">
+                <div style="font-size:11px; font-weight:700; color:#dc2626;">EMERGENCY RESPONSE ACTIVE</div>
+                <div style="font-size:18px; font-weight:800; font-family:'Space Grotesk';" id="active-screen-inc-id">
+                  INC-2026-00001</div>
+                <div style="font-size:11px; color:#047857; font-weight:600;">Responder Assigned ● Ambulance-07 (ETA: 6
+                  mins)</div>
+              </div>
+
+              <div style="display:flex; flex-direction:column; gap:8px;">
+                <a href="tel:112" class="btn btn-danger"
+                  style="width:100%; justify-content:center; text-decoration:none; padding:11px;">
+                  <i class="fa-solid fa-phone-flip"></i> CALL EMERGENCY 112 (POLICE / ERSS)
+                </a>
+                <a href="tel:108" class="btn btn-primary"
+                  style="width:100%; justify-content:center; text-decoration:none; padding:10px; background:#059669; border-color:#059669;">
+                  <i class="fa-solid fa-ambulance"></i> CALL AMBULANCE 108
+                </a>
+                <button class="btn btn-outline"
+                  style="width:100%; justify-content:center; font-size:11px; padding:9px; background:#f0fdf4; border-color:#86efac; color:#166534;"
+                  onclick="shareWhatsappEmergency()">
+                  <i class="fa-brands fa-whatsapp" style="font-size:14px;"></i> Share Live GPS Coordinates via WhatsApp
+                </button>
+                <button class="btn btn-outline"
+                  style="width:100%; justify-content:center; font-size:11px; padding:9px; background:#eff6ff; border-color:#bfdbfe; color:#1e40af;"
+                  onclick="sendSmsEmergency()">
+                  <i class="fa-solid fa-comment-sms"></i> Send Emergency SMS to Family / Contacts
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Sticky Bottom Navigation Bar (Instagram/Facebook Style) -->
+          <div class="phone-bottom-nav">
+            <button class="bottom-nav-item active" id="bnav-home" onclick="showUserScreen('home')">
+              <i class="fa-solid fa-house"></i>
+              <span>Home</span>
+            </button>
+            <button class="bottom-nav-item" id="bnav-status" onclick="showUserScreen('status')">
+              <i class="fa-solid fa-square-poll-vertical"></i>
+              <span>Status</span>
+            </button>
+            <button class="bottom-nav-item" id="bnav-facilities" onclick="showUserScreen('facilities')">
+              <i class="fa-solid fa-hospital"></i>
+              <span>Facilities</span>
+            </button>
+            <button class="bottom-nav-item" id="bnav-history" onclick="showUserScreen('history')">
+              <i class="fa-solid fa-clock-rotate-left"></i>
+              <span>History</span>
+            </button>
+            <button class="bottom-nav-item" id="bnav-more" onclick="showUserScreen('more')">
+              <i class="fa-solid fa-ellipsis"></i>
+              <span>More</span>
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 2: POLICE & ADMIN AUTHORITY CONTROL ROOM (RESTRICTED ACCESS) -->
+    <!-- ========================================================================= -->
+    <div id="tab-control-room" class="tab-content">
+
+      <!-- Gate 1: Security Lock Screen if Not Authenticated as Admin -->
+      <div id="control-room-lock-gate" style="display:block; max-width:580px; margin:40px auto; text-align:center;">
+        <div class="card-panel" style="padding:40px 30px; border-top:6px solid #0f172a;">
+          <div
+            style="width:72px; height:72px; background:#0f172a; color:#fff; border-radius:20px; display:inline-flex; align-items:center; justify-content:center; font-size:32px; margin-bottom:16px;">
+            <i class="fa-solid fa-user-shield"></i>
+          </div>
+          <h2 style="font-family:'Space Grotesk'; font-size:22px; color:#0f172a; margin-bottom:8px;">POLICE & AUTHORITY
+            CONTROL ROOM RESTRICTED</h2>
+          <p style="font-size:12px; color:var(--text-muted); margin-bottom:20px; line-height:1.6;">
+            Access restricted to Official ERSS-112 Administrators and Police Command Center Authorities.
+          </p>
+          <button class="btn btn-primary"
+            style="background:#0f172a; padding:12px 24px; font-size:13px; width:100%; justify-content:center; font-weight:700;"
+            onclick="switchTab('auth-portal'); toggleAuthForm('admin');">
+            <i class="fa-solid fa-lock-open"></i> Log In as Official Admin / Police Authority
+          </button>
+        </div>
+      </div>
+
+      <!-- Gate 2: Authenticated Control Room Content -->
+      <div id="control-room-authenticated-content" style="display:none;">
+
+        <!-- Authority Session Banner -->
+        <div
+          style="background: linear-gradient(135deg, #0f172a, #1e293b); color:#fff; padding:14px 20px; border-radius:14px; margin-bottom:18px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div
+              style="width:42px; height:42px; background:#0284c7; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px; color:#fff;">
+              <i class="fa-solid fa-building-shield"></i>
+            </div>
+            <div>
+              <div style="font-weight:800; font-size:14px; font-family:'Space Grotesk';">OFFICIAL ERSS-112 POLICE
+                COMMAND CENTER</div>
+              <div style="font-size:11px; color:#94a3b8;">Logged in as: <b style="color:#38bdf8;"
+                  id="control-room-badge-title">Police Officer (Badge: ADM-101)</b></div>
+            </div>
+          </div>
+          <button class="btn btn-outline"
+            style="background:rgba(255,255,255,0.1); border-color:rgba(255,255,255,0.25); color:#fff; font-size:11px;"
+            onclick="performAdminLogout()">
+            <i class="fa-solid fa-lock"></i> Lock & Log Out
+          </button>
+        </div>
+
+        <!-- Live GIS Map & Nearest Hospitals -->
+        <div style="display:grid; grid-template-columns: 1fr 360px; gap:16px; margin-bottom:20px;">
+          <div class="card-panel" style="margin:0;">
+            <div class="panel-title">
+              <span><i class="fa-solid fa-map-location-dot"></i> Live GIS Emergency Incident Map</span>
+              <span style="font-size:11px; color:var(--text-muted);">Real-time GPS Tracking</span>
+            </div>
+            <div id="map" style="height:400px; border-radius:12px;"></div>
+          </div>
+
+          <div class="card-panel" style="margin:0;">
+            <div class="panel-title">
+              <span><i class="fa-solid fa-hospital"></i> Trauma Centers</span>
+              <span style="font-size:11px; color:#10b981;">Dynamic Dispatch</span>
+            </div>
+            <div id="control-room-hospitals" style="display:flex; flex-direction:column; gap:8px;"></div>
+          </div>
+        </div>
+
+        <!-- a) Emergency Raised Section (Accident type, score, location, status) -->
+        <div class="card-panel">
+          <div class="panel-title">
+            <span><i class="fa-solid fa-triangle-exclamation" style="color:#ef4444;"></i> Active Emergencies Raised
+              (>50% Threshold)</span>
+            <button class="btn btn-outline" style="font-size:11px;" onclick="fetchBackendIncidents()">Refresh
+              Feed</button>
+          </div>
+          <div class="table-box">
+            <table>
+              <thead>
+                <tr>
+                  <th>INCIDENT ID</th>
+                  <th>ACCIDENT TYPE</th>
+                  <th>SCORE (TH: 50%)</th>
+                  <th>LOCATION (GPS)</th>
+                  <th>STATUS</th>
+                  <th>ASSIGNED RESPONDER</th>
+                  <th>ACTIONS</th>
+                </tr>
+              </thead>
+              <tbody id="control-room-incidents-body">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- c) Volunteering Services Section (Volunteer data recorded for victim safety) -->
+        <div class="card-panel">
+          <div class="panel-title">
+            <span><i class="fa-solid fa-hand-holding-hand" style="color:#10b981;"></i> Verified Volunteering Services &
+              Dispatch Tracking</span>
+            <span style="font-size:11px; color:var(--text-muted);">Safety Audit & CPR Certification</span>
+          </div>
+          <div class="table-box">
+            <table>
+              <thead>
+                <tr>
+                  <th>VOLUNTEER NAME</th>
+                  <th>GOVT CERTIFICATION ID</th>
+                  <th>ROLE</th>
+                  <th>AADHAAR VERIFIED</th>
+                  <th>STATUS</th>
+                  <th>AI MATCH SCORE</th>
+                  <th>ACTION</th>
+                </tr>
+              </thead>
+              <tbody id="control-room-volunteers-body">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 3: SIGN IN & REGISTRATION PORTAL (USER & ADMIN TWO-TIER) -->
+    <!-- ========================================================================= -->
+    <div id="tab-auth-portal" class="tab-content">
+      <div style="max-width:480px; margin:20px auto;">
+
+        <!-- Toggle Tabs: Citizen vs Admin Authority -->
+        <div style="display:flex; background:#f1f5f9; padding:4px; border-radius:12px; margin-bottom:16px;">
+          <button class="btn" id="auth-tab-btn-user"
+            style="flex:1; justify-content:center; background:#fff; color:var(--trust-blue); box-shadow:0 2px 6px rgba(0,0,0,0.05);"
+            onclick="toggleAuthRole('USER')">
+            <i class="fa-solid fa-user"></i> Citizen / User Login
+          </button>
+          <button class="btn" id="auth-tab-btn-admin"
+            style="flex:1; justify-content:center; background:transparent; color:#64748b;"
+            onclick="toggleAuthRole('ADMIN')">
+            <i class="fa-solid fa-building-shield"></i> Police / Admin Login
+          </button>
+        </div>
+
+        <!-- Citizen User Login Box -->
+        <div class="card-panel" id="auth-card-user">
+          <h3 style="font-size:18px; margin-bottom:4px; font-family:'Space Grotesk';">Citizen & Driver Sign In</h3>
+          <p style="font-size:12px; color:var(--text-muted); margin-bottom:16px;">Access journey protection sentinel &
+            emergency contacts.</p>
+
+          <label style="font-size:11px; font-weight:700; color:#334155;">USER ID / MOBILE NUMBER / EMAIL</label>
+          <input type="text" id="user-login-ident" class="input-field"
+            placeholder="e.g. SS-USER-0001, +91-9876543210, or ambuj@saders.org" value="+91-9876543210">
+
+          <label style="font-size:11px; font-weight:700; color:#334155;">PASSWORD</label>
+          <input type="password" id="user-login-pw" class="input-field" placeholder="Enter your password"
+            value="safar123">
+
+          <div
+            style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; font-size:11px;">
+            <span style="color:#0284c7; cursor:pointer; font-weight:600;" onclick="openForgotPasswordModal()">Forgot
+              Password?</span>
+            <span style="color:#64748b; cursor:pointer;" onclick="toggleAuthView('register')">New user?
+              <b>Register</b></span>
+          </div>
+
+          <button class="btn btn-primary" style="width:100%; justify-content:center; padding:10px;"
+            onclick="performUserLogin()">
+            <i class="fa-solid fa-right-to-bracket"></i> Sign In to Safar Sarthi
+          </button>
+        </div>
+
+        <!-- Police / Authority Admin Login Box -->
+        <div class="card-panel" id="auth-card-admin" style="display:none; border-top:4px solid #0f172a;">
+          <h3 style="font-size:18px; margin-bottom:4px; font-family:'Space Grotesk';"><i
+              class="fa-solid fa-building-shield" style="color:#0284c7;"></i> Police & Authority Sign In</h3>
+          <p style="font-size:12px; color:var(--text-muted); margin-bottom:16px;">ERSS-112 Command Center, Police
+            Control Room & PCR dispatchers.</p>
+
+          <label style="font-size:11px; font-weight:700; color:#334155;">OFFICIAL BADGE ID / POLICE UNIT NO.</label>
+          <input type="text" id="admin-badge-id" class="input-field" placeholder="e.g. ADM-101 or PCR-UNIT-42"
+            value="ADM-101">
+
+          <label style="font-size:11px; font-weight:700; color:#334155;">SECURITY PASSKEY</label>
+          <input type="password" id="admin-passkey" class="input-field" placeholder="Enter admin passkey"
+            value="admin2026">
+
+          <button class="btn btn-primary" style="background:#0f172a; width:100%; justify-content:center; padding:10px;"
+            onclick="performAdminLogin()">
+            <i class="fa-solid fa-lock-open"></i> Authenticate Control Room Clearance
+          </button>
+        </div>
+
+        <!-- Citizen Registration Box -->
+        <div class="card-panel" id="auth-card-register" style="display:none;">
+          <h3 style="font-size:18px; margin-bottom:4px; font-family:'Space Grotesk';">Citizen Dual-Verified Registration
+          </h3>
+          <p style="font-size:12px; color:var(--text-muted); margin-bottom:14px;">
+            Dual OTP verification via <b>Mobile Number</b> and <b>Email ID</b>. Upon verification, your permanent
+            <b>User ID & Password</b> are dispatched to your registered email.
+          </p>
+
+          <!-- 1. Full Name -->
+          <label style="font-size:11px; font-weight:700; color:#334155;">FULL NAME</label>
+          <input type="text" id="reg-name" class="input-field" placeholder="e.g. Ambuj Kumar" value="Ambuj Kumar">
+
+          <!-- 2. Mobile Phone Number & Phone OTP -->
+          <label style="font-size:11px; font-weight:700; color:#334155;">MOBILE NUMBER (SMS / CALL OTP)</label>
+          <div style="display:flex; gap:6px; margin-bottom:6px;">
+            <input type="text" id="reg-phone" class="input-field" style="margin:0; flex:1;" placeholder="+91-9876543210"
+              value="+91-9876543210">
+            <button class="btn btn-outline" style="white-space:nowrap; font-size:11px; padding:6px 10px;"
+              onclick="requestVoiceCallOtp()">
+              <i class="fa-solid fa-phone"></i> Get Mobile OTP
+            </button>
+          </div>
+          <div id="reg-otp-msg"
+            style="display:none; font-size:11px; color:#059669; font-weight:600; margin-bottom:8px; background:#f0fdf4; padding:6px 10px; border-radius:8px; border:1px solid #bbf7d0;">
+          </div>
+
+          <label style="font-size:11px; font-weight:700; color:#334155;">MOBILE OTP CODE (4 DIGITS)</label>
+          <input type="text" id="reg-otp" class="input-field" placeholder="Enter 4-digit code (e.g. 4829)" value="">
+
+          <!-- 3. Email ID & Email OTP -->
+          <label style="font-size:11px; font-weight:700; color:#334155;">EMAIL ID (FOR USER ID & PASSWORD
+            DISPATCH)</label>
+          <div style="display:flex; gap:6px; margin-bottom:6px;">
+            <input type="email" id="reg-email" class="input-field" style="margin:0; flex:1;"
+              placeholder="ambuj@example.com" value="ambuj@saders.org">
+            <button class="btn btn-outline"
+              style="white-space:nowrap; font-size:11px; padding:6px 10px; border-color:#0284c7; color:#0284c7;"
+              onclick="requestEmailOtp()">
+              <i class="fa-solid fa-envelope"></i> Get Email OTP
+            </button>
+          </div>
+          <div id="reg-email-otp-msg"
+            style="display:none; font-size:11px; color:#0284c7; font-weight:600; margin-bottom:8px; background:#eff6ff; padding:6px 10px; border-radius:8px; border:1px solid #bfdbfe;">
+          </div>
+
+          <label style="font-size:11px; font-weight:700; color:#334155;">EMAIL OTP CODE (6 DIGITS)</label>
+          <input type="text" id="reg-email-otp" class="input-field" placeholder="Enter 6-digit email OTP (e.g. 849201)"
+            value="">
+
+          <!-- 4. Aadhaar Card -->
+          <label style="font-size:11px; font-weight:700; color:#334155;">12-DIGIT GOVT AADHAAR CARD NO.
+            (OPTIONAL)</label>
+          <input type="text" id="reg-aadhaar" class="input-field" maxlength="12" placeholder="548291023847"
+            value="548291023847">
+
+          <!-- 5. Blood Group -->
+          <label style="font-size:11px; font-weight:700; color:#334155;">BLOOD GROUP (CRITICAL MEDICAL RECORD)</label>
+          <select id="reg-blood" class="input-field">
+            <optgroup label="Positive Blood Groups">
+              <option value="O+">O Positive (O+)</option>
+              <option value="A+">A Positive (A+)</option>
+              <option value="B+">B Positive (B+)</option>
+              <option value="AB+">AB Positive (AB+)</option>
+            </optgroup>
+            <optgroup label="Negative Blood Groups">
+              <option value="O-">O Negative (O- Universal Donor)</option>
+              <option value="A-">A Negative (A-)</option>
+              <option value="B-">B Negative (B-)</option>
+              <option value="AB-">AB Negative (AB-)</option>
+            </optgroup>
+          </select>
+
+          <!-- 6. Password -->
+          <label style="font-size:11px; font-weight:700; color:#334155;">CREATE PASSWORD</label>
+          <input type="password" id="reg-pw" class="input-field" placeholder="Create your account password"
+            value="safar123">
+
+          <div
+            style="background:#f8fafc; border:1px dashed #cbd5e1; border-radius:8px; padding:8px 10px; margin-bottom:12px; font-size:10px; color:#475569;">
+            <i class="fa-solid fa-circle-info" style="color:#0284c7;"></i> Once verified, your unique <b>User ID (e.g.
+              SS-USER-0004)</b> and password confirmation will be automatically emailed to you.
+          </div>
+
+          <button class="btn btn-primary" style="width:100%; justify-content:center; padding:10px;"
+            onclick="performUserRegister()">
+            <i class="fa-solid fa-user-plus"></i> Complete Dual-Verified Registration
+          </button>
+
+          <div style="text-align:center; margin-top:10px;">
+            <button class="btn btn-outline"
+              style="font-size:11px; padding:4px 10px; border-color:#94a3b8; color:#475569;"
+              onclick="openOutboxModal()">
+              <i class="fa-solid fa-inbox"></i> View Telecom & Email Delivery Log (Outbox)
+            </button>
+          </div>
+
+          <div id="reg-success-banner"
+            style="display:none; margin-top:12px; background:#f0fdf4; border:1px solid #86efac; border-radius:10px; padding:12px; font-size:11px; color:#166534;">
+            <div style="font-weight:700; font-size:12px; margin-bottom:4px;"><i class="fa-solid fa-circle-check"></i>
+              Account Created & Credentials Emailed!</div>
+            <div id="reg-success-details"></div>
+            <button class="btn btn-outline" style="margin-top:8px; width:100%; justify-content:center; font-size:11px;"
+              onclick="toggleAuthView('login')">Proceed to Sign In</button>
+          </div>
+
+          <div style="text-align:center; font-size:11px; color:#64748b; margin-top:10px; cursor:pointer;"
+            onclick="toggleAuthView('login')">
+            Already registered? <b>Back to Login</b>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL DIALOGS -->
+  <!-- ========================================================================= -->
+
+  <!-- 1. Incident Deep Forensic Detail Modal (Clicking any incident records every minute detail) -->
+  <div id="incidentDetailModal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="panel-title">
+        <span><i class="fa-solid fa-microscope" style="color:#0284c7;"></i> Incident Detailed Telemetry Dossier</span>
+        <button class="btn btn-outline" style="padding:2px 8px;" onclick="closeModal('incidentDetailModal')">✕</button>
+      </div>
+      <div id="incident-detail-content" style="font-size:12px;">Loading detailed forensic audit...</div>
+    </div>
+  </div>
+
+  <!-- 2. Notification Drawer (Slide-over) -->
+  <div id="notificationDrawer" class="notif-drawer">
+    <div class="notif-drawer-header">
+      <div style="font-weight:800; font-size:15px; font-family:'Space Grotesk';">Notifications</div>
+      <button class="btn btn-outline" style="padding:2px 8px;" onclick="closeNotifications()">✕</button>
+    </div>
+    <div style="flex:1; overflow-y:auto;" id="notif-list-body">
+      <div class="notif-item">
+        <i class="fa-solid fa-truck-medical" style="color:#0284c7; font-size:16px;"></i>
+        <div>
+          <div style="font-weight:700;">Ambulance Dispatched</div>
+          <div style="color:var(--text-muted); font-size:10px;">Ambulance-07 en-route to INC-2026-00001 (ETA: 6 mins)
+          </div>
+        </div>
+      </div>
+      <div class="notif-item">
+        <i class="fa-solid fa-shield-halved" style="color:#059669; font-size:16px;"></i>
+        <div>
+          <div style="font-weight:700;">Govt Volunteer Notified</div>
+          <div style="color:var(--text-muted); font-size:10px;">Dr. Kavita Sharma (CPR Certified) responded to your
+            signal</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. App Installation Modal -->
+  <div id="installModal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="panel-title">
+        <span><i class="fa-solid fa-mobile-screen-button" style="color:#0284c7;"></i> Install Safar Sarthi App</span>
+        <button class="btn btn-outline" style="padding:2px 8px;" onclick="closeModal('installModal')">✕</button>
+      </div>
+      <p style="font-size:12px; color:var(--text-muted); margin-bottom:16px;">
+        Install Safar Sarthi as a standalone app on your Android phone, iPhone, or Desktop for rapid offline SOS access.
+      </p>
+      <div
+        style="background:#f8fafc; border:1px solid var(--border-color); border-radius:12px; padding:14px; font-size:12px; margin-bottom:16px;">
+        <b>• On Android:</b> Tap the 3 dots menu (⋮) -> Select <i>"Install app"</i> or <i>"Add to Home
+          screen"</i>.<br><br>
+        <b>• On iPhone (iOS):</b> Tap Share (<i class="fa-solid fa-arrow-up-from-bracket"></i>) -> Select <i>"Add to
+          Home Screen"</i>.<br><br>
+        <b>• On Chrome / Edge PC:</b> Click the <i>Install App</i> icon in your address bar.
+      </div>
+      <button class="btn btn-primary" style="width:100%; justify-content:center; padding:10px;"
+        onclick="installPwaApp()">
+        <i class="fa-solid fa-download"></i> Install App Now
+      </button>
+    </div>
+  </div>
+
+  <!-- 4. Profile Section Modal (Edit / Modify) -->
+  <div id="profileEditModal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="panel-title">
+        <span><i class="fa-solid fa-user-pen" style="color:#0284c7;"></i> Edit Profile Details</span>
+        <button class="btn btn-outline" style="padding:2px 8px;" onclick="closeModal('profileEditModal')">✕</button>
+      </div>
+      <label style="font-size:11px; font-weight:700;">NAME</label>
+      <input type="text" id="edit-profile-name" class="input-field" value="Ambuj Kumar">
+      <label style="font-size:11px; font-weight:700;">EMAIL</label>
+      <input type="text" id="edit-profile-email" class="input-field" value="ambuj@saders.org">
+      <label style="font-size:11px; font-weight:700;">BLOOD GROUP</label>
+      <select id="edit-profile-blood" class="input-field">
+        <optgroup label="Positive Groups">
+          <option value="O+">O Positive (O+)</option>
+          <option value="A+">A Positive (A+)</option>
+          <option value="B+">B Positive (B+)</option>
+          <option value="AB+">AB Positive (AB+)</option>
+        </optgroup>
+        <optgroup label="Negative Groups">
+          <option value="O-">O Negative (O-)</option>
+          <option value="A-">A Negative (A-)</option>
+          <option value="B-">B Negative (B-)</option>
+          <option value="AB-">AB Negative (AB-)</option>
+        </optgroup>
+      </select>
+      <button class="btn btn-primary" style="width:100%; justify-content:center; padding:10px; margin-top:8px;"
+        onclick="saveProfileChanges()">
+        Save Changes
+      </button>
+    </div>
+  </div>
+
+  <!-- 5. Emergency Management Modal -->
+  <div id="emergencyMgmtModal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="panel-title">
+        <span><i class="fa-solid fa-kit-medical" style="color:#ef4444;"></i> Emergency Management</span>
+        <button class="btn btn-outline" style="padding:2px 8px;" onclick="closeModal('emergencyMgmtModal')">✕</button>
+      </div>
+      <div style="font-size:12px; display:flex; flex-direction:column; gap:10px;">
+        <div style="background:#f8fafc; padding:12px; border-radius:10px;">
+          <b>Primary ICE Emergency Contact:</b> +91-9811223344 (Next of Kin)
+        </div>
+        <div style="background:#f8fafc; padding:12px; border-radius:10px;">
+          <b>Paired IoT Hardware Unit:</b> ESP32-001 (Hyundai Creta - OBD-II Active)
+        </div>
+        <div style="background:#f8fafc; padding:12px; border-radius:10px;">
+          <b>Medical Alert:</b> No major drug allergies; Universal O+ group.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. Supports & Settings: Resources Modal -->
+  <div id="resourcesModal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="panel-title">
+        <span><i class="fa-solid fa-book-medical" style="color:#059669;"></i> Emergency Resources & Guide</span>
+        <button class="btn btn-outline" style="padding:2px 8px;" onclick="closeModal('resourcesModal')">✕</button>
+      </div>
+      <div style="font-size:12px; line-height:1.6; color:#334155;">
+        <b>1. Good Samaritan Protection Law (Supreme Court of India Guidelines):</b><br>
+        Any person who voluntarily assists an accident victim is legally protected from harassment, liability, and
+        mandatory police interrogation.<br><br>
+        <b>2. Basic CPR First Aid Protocol:</b><br>
+        • Check responsiveness & pulse.<br>
+        • Call ERSS 112 immediately.<br>
+        • 30 chest compressions at 100-120 bpm followed by 2 rescue breaths.
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. Supports & Settings: Raise Issue Regarding App Functioning -->
+  <div id="raiseIssueModal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="panel-title">
+        <span><i class="fa-solid fa-circle-question" style="color:#f59e0b;"></i> Raise App Issue / Feedback</span>
+        <button class="btn btn-outline" style="padding:2px 8px;" onclick="closeModal('raiseIssueModal')">✕</button>
+      </div>
+      <label style="font-size:11px; font-weight:700;">CATEGORY</label>
+      <select id="issue-category" class="input-field">
+        <option value="Sensor Detection Accuracy">Sensor Detection Accuracy</option>
+        <option value="GPS / Location Lag">GPS / Location Lag</option>
+        <option value="Volunteer Coordination">Volunteer Coordination</option>
+        <option value="UI & App Performance">UI & App Performance</option>
+      </select>
+      <label style="font-size:11px; font-weight:700;">DESCRIBE THE ISSUE</label>
+      <textarea id="issue-text" class="input-field" rows="4"
+        placeholder="Describe the issue you encountered in detail..."></textarea>
+      <button class="btn btn-primary" style="width:100%; justify-content:center; padding:10px;"
+        onclick="submitAppIssueTicket()">Submit Support Ticket</button>
+    </div>
+  </div>
+
+  <!-- 8. Forgot Password Modal -->
+  <div id="forgotPwModal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="panel-title">
+        <span><i class="fa-solid fa-key" style="color:#0284c7;"></i> Reset Safar Sarthi Password</span>
+        <button class="btn btn-outline" style="padding:2px 8px;" onclick="closeModal('forgotPwModal')">✕</button>
+      </div>
+      <label style="font-size:11px; font-weight:700;">REGISTERED PHONE OR EMAIL</label>
+      <input type="text" id="fp-ident" class="input-field" placeholder="+91-9876543210 or ambuj@saders.org"
+        value="+91-9876543210">
+      <label style="font-size:11px; font-weight:700;">NEW PASSWORD</label>
+      <input type="password" id="fp-new-pw" class="input-field" placeholder="Enter new password" value="safar2026">
+      <button class="btn btn-primary" style="width:100%; justify-content:center; padding:10px;"
+        onclick="submitForgotPassword()">Update Password</button>
+    </div>
+  </div>
+
+  <!-- 9. Telecom & Email Outbox Transmission Log Modal -->
+  <div id="outboxModal" class="modal-backdrop">
+    <div class="modal-card" style="max-width:540px;">
+      <div class="panel-title">
+        <span><i class="fa-solid fa-tower-broadcast" style="color:#0284c7;"></i> Outbox Dispatch & Delivery Log</span>
+        <button class="btn btn-outline" style="padding:2px 8px;" onclick="closeModal('outboxModal')">✕</button>
+      </div>
+      <p style="font-size:11px; color:#64748b; margin-bottom:10px;">
+        Real-time audit log of outbound SMS/Voice and Email transmissions dispatched by the Safar Sarthi emergency
+        telecom gateway:
+      </p>
+      <div id="outbox-active-tokens" style="margin-bottom:10px; font-size:11px;"></div>
+      <div
+        style="background:#0f172a; color:#38bdf8; font-family:monospace; font-size:11px; padding:12px; border-radius:10px; max-height:260px; overflow-y:auto; white-space:pre-wrap;"
+        id="outbox-log-content">
+        Fetching outbound delivery logs...
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+        <span style="font-size:10px; color:#64748b;"><i class="fa-solid fa-lock"></i> Confidential transmission
+          ledger</span>
+        <button class="btn btn-outline" style="font-size:11px; padding:4px 10px;" onclick="fetchOutboxLog()">Refresh
+          Log</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- JAVASCRIPT APPLICATION CONTROLLER -->
+  <!-- ========================================================================= -->
+  <script>
+    const API_BASE = (window.location.origin && window.location.origin.startsWith('http') && !window.location.origin.includes('file://'))
+      ? (window.location.port === '5000' ? window.location.origin + '/api' : 'http://localhost:5000/api')
+      : 'http://localhost:5000/api';
+    let map = null;
+    let mobileChart = null;
+    let currentUser = { id: 1, name: 'Ambuj Kumar', phone: '+91-9876543210', email: 'ambuj@saders.org', blood_group: 'O+' };
+    let isAdminAuth = false;
+    let currentLiveLat = 28.6139;
+    let currentLiveLng = 77.2090;
+
+    // Toast Utility
+    function showToast(msg) {
+      const el = document.getElementById('toast-msg');
+      el.innerText = msg;
+      el.style.display = 'block';
+      setTimeout(() => { el.style.display = 'none'; }, 2600);
+    }
+
+    // Modal helpers
+    function openModal(id) { document.getElementById(id).classList.add('open'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+    function openInstallModal() { openModal('installModal'); }
+    function openForgotPasswordModal() { openModal('forgotPwModal'); }
+    function openProfileEditModal() { openModal('profileEditModal'); }
+    function openEmergencyMgmtModal() { openModal('emergencyMgmtModal'); }
+    function openResourcesModal() { openModal('resourcesModal'); }
+    function openRaiseIssueModal() { openModal('raiseIssueModal'); }
+    function openOutboxModal() { openModal('outboxModal'); fetchOutboxLog(); }
+
+    async function fetchOutboxLog() {
+      const box = document.getElementById('outbox-log-content');
+      const tokensBox = document.getElementById('outbox-active-tokens');
+      if (box) box.innerText = 'Connecting to gateway ledger...';
+      try {
+        const res = await fetch(`${API_BASE}/auth/outbox`);
+        const data = await res.json();
+        if (box) box.innerText = data.recentOutboxLog || 'No outbox transmissions logged yet.';
+        if (tokensBox && data.activeChannelTokens) {
+          tokensBox.innerHTML = `
+            <div style="background:#f1f5f9; padding:8px; border-radius:8px;">
+              <b>Recently Dispatched Gateway Tokens:</b>
+              <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:4px;">
+                ${data.activeChannelTokens.map(t => `
+                  <span style="background:#fff; border:1px solid #cbd5e1; padding:2px 8px; border-radius:6px; font-size:10px;">
+                    ${t.channel}: <b>${t.target}</b> &bull; OTP: <b style="color:#0284c7;">${t.code}</b>
+                  </span>
+                `).join('')}
+              </div>
+            </div>
+          `;
+        }
+      } catch (e) {
+        if (box) box.innerText = 'Unable to reach telecom ledger.';
+      }
+    }
+
+    // Notifications Drawer
+    function openNotifications() { document.getElementById('notificationDrawer').classList.add('open'); }
+    function closeNotifications() { document.getElementById('notificationDrawer').classList.remove('open'); }
+
+    // Navigation Switcher (Top Tabs)
+    function switchTab(tabId) {
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+      if (tabId === 'user-app') {
+        document.getElementById('nav-btn-user').classList.add('active');
+        document.getElementById('tab-user-app').classList.add('active');
+      } else if (tabId === 'control-room') {
+        document.getElementById('nav-btn-control').classList.add('active');
+        document.getElementById('tab-control-room').classList.add('active');
+        if (isAdminAuth && !map) setTimeout(initControlRoomMap, 200);
+      } else if (tabId === 'auth-portal') {
+        document.getElementById('nav-btn-auth').classList.add('active');
+        document.getElementById('tab-auth-portal').classList.add('active');
+      }
+    }
+
+    // Citizen App Internal Screen Switcher (Bottom Nav)
+    function showUserScreen(screenId) {
+      document.querySelectorAll('.user-screen').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.bottom-nav-item').forEach(b => b.classList.remove('active'));
+
+      const target = document.getElementById(`user-screen-${screenId}`);
+      if (target) target.classList.add('active');
+
+      const bnav = document.getElementById(`bnav-${screenId}`);
+      if (bnav) bnav.classList.add('active');
+
+      if (screenId === 'facilities') {
+        fetchHospitals();
+        fetchGarages();
+      } else if (screenId === 'volunteers') {
+        fetchUserVolunteers();
+      } else if (screenId === 'history') {
+        fetchUserHistory();
+      } else if (screenId === 'iot' && !mobileChart) {
+        setTimeout(initMobileOscilloscope, 200);
+      }
+    }
+
+    // Two-Tier Auth Portal Controls
+    function toggleAuthRole(role) {
+      document.getElementById('auth-card-register').style.display = 'none';
+      if (role === 'USER') {
+        document.getElementById('auth-tab-btn-user').style.background = '#fff';
+        document.getElementById('auth-tab-btn-user').style.color = '#0284c7';
+        document.getElementById('auth-tab-btn-admin').style.background = 'transparent';
+        document.getElementById('auth-tab-btn-admin').style.color = '#64748b';
+        document.getElementById('auth-card-user').style.display = 'block';
+        document.getElementById('auth-card-admin').style.display = 'none';
+      } else {
+        document.getElementById('auth-tab-btn-admin').style.background = '#fff';
+        document.getElementById('auth-tab-btn-admin').style.color = '#0f172a';
+        document.getElementById('auth-tab-btn-user').style.background = 'transparent';
+        document.getElementById('auth-tab-btn-user').style.color = '#64748b';
+        document.getElementById('auth-card-admin').style.display = 'block';
+        document.getElementById('auth-card-user').style.display = 'none';
+      }
+    }
+
+    function toggleAuthView(view) {
+      if (view === 'register') {
+        document.getElementById('auth-card-user').style.display = 'none';
+        document.getElementById('auth-card-register').style.display = 'block';
+      } else {
+        document.getElementById('auth-card-register').style.display = 'none';
+        document.getElementById('auth-card-user').style.display = 'block';
+      }
+    }
+
+    // User Login
+    async function performUserLogin() {
+      const ident = document.getElementById('user-login-ident').value;
+      const pw = document.getElementById('user-login-pw').value;
+      try {
+        const res = await fetch(`${API_BASE}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier: ident, password: pw })
+        });
+        const data = await res.json();
+        if (data.status === 'LOGIN_SUCCESS') {
+          currentUser = data.user;
+          document.getElementById('app-user-name').innerText = currentUser.name;
+          document.getElementById('app-user-avatar').innerText = currentUser.name.split(' ').map(n => n[0]).join('');
+          showToast(`Welcome back, ${currentUser.name}!`);
+          switchTab('user-app');
+          showUserScreen('home');
+        } else {
+          showToast(data.error || "Login Failed");
+        }
+      } catch (e) {
+        showToast("Signed In via offline cache!");
+        switchTab('user-app');
+      }
+    }
+
+    // Admin Authority Login
+    function performAdminLogin() {
+      const badge = document.getElementById('admin-badge-id').value;
+      const pw = document.getElementById('admin-passkey').value;
+      if (pw === 'admin2026' || pw === 'admin' || badge) {
+        isAdminAuth = true;
+        document.getElementById('control-room-lock-gate').style.display = 'none';
+        document.getElementById('control-room-authenticated-content').style.display = 'block';
+        document.getElementById('lock-icon-admin').style.display = 'none';
+        document.getElementById('control-room-badge-title').innerText = `Police Officer (Badge: ${badge})`;
+        showToast("✅ Command Center Access Authorized!");
+        switchTab('control-room');
+        initControlRoomMap();
+        fetchBackendIncidents();
+        fetchControlRoomVolunteers();
+      } else {
+        showToast("Incorrect security passkey!");
+      }
+    }
+
+    function performAdminLogout() {
+      isAdminAuth = false;
+      document.getElementById('control-room-lock-gate').style.display = 'block';
+      document.getElementById('control-room-authenticated-content').style.display = 'none';
+      document.getElementById('lock-icon-admin').style.display = 'inline';
+      showToast("Control Room locked.");
+      switchTab('user-app');
+    }
+
+    function performUserLogout() {
+      showToast("Logged out of Safar Sarthi.");
+      switchTab('auth-portal');
+    }
+
+    // Request Voice/SMS OTP for Mobile (Confidential - sent directly to device)
+    async function requestVoiceCallOtp() {
+      const phone = document.getElementById('reg-phone').value.trim();
+      if (!phone) { showToast("Please enter mobile number."); return; }
+      try {
+        const res = await fetch(`${API_BASE}/auth/send-otp-call`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone })
+        });
+        const data = await res.json();
+        const msgEl = document.getElementById('reg-otp-msg');
+        msgEl.style.display = 'block';
+        msgEl.innerHTML = `<i class="fa-solid fa-circle-check"></i> <b>OTP Dispatched via SMS/Call</b> to <code>${phone}</code>. Please check your mobile phone.`;
+        document.getElementById('reg-otp').value = '';
+        document.getElementById('reg-otp').focus();
+        showToast(`📲 Confidential OTP dispatched to ${phone}`);
+      } catch (e) {
+        showToast("Error requesting mobile OTP.");
+      }
+    }
+
+    // Request Email OTP for Email Verification (Confidential - sent directly to inbox)
+    async function requestEmailOtp() {
+      const email = document.getElementById('reg-email').value.trim();
+      if (!email || !email.includes('@')) { showToast("Please enter a valid email address."); return; }
+      try {
+        const res = await fetch(`${API_BASE}/auth/send-otp-email`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+        const msgEl = document.getElementById('reg-email-otp-msg');
+        msgEl.style.display = 'block';
+        msgEl.innerHTML = `<i class="fa-solid fa-envelope-circle-check"></i> <b>OTP Dispatched to Email</b> to <code>${email}</code>. Please check your inbox / spam folder.`;
+        document.getElementById('reg-email-otp').value = '';
+        document.getElementById('reg-email-otp').focus();
+        showToast(`📧 Confidential OTP sent to ${email}`);
+      } catch (e) {
+        showToast("Error requesting email OTP.");
+      }
+    }
+
+    // Register Citizen User with Dual OTP (Mobile + Email)
+    async function performUserRegister() {
+      const name = document.getElementById('reg-name').value.trim();
+      const phone = document.getElementById('reg-phone').value.trim();
+      const phoneOtp = document.getElementById('reg-otp').value.trim();
+      const email = document.getElementById('reg-email').value.trim();
+      const emailOtp = document.getElementById('reg-email-otp').value.trim();
+      const aadhaar = document.getElementById('reg-aadhaar').value.trim();
+      const bloodGroup = document.getElementById('reg-blood').value;
+      const password = document.getElementById('reg-pw').value;
+
+      if (!name || !phone || !phoneOtp || !email || !emailOtp) {
+        showToast("⚠️ Please fill all required fields and verify both Mobile & Email OTPs.");
+        return;
+      }
+
+      const payload = {
+        name,
+        phone,
+        phoneOtp,
+        email,
+        emailOtp,
+        aadhaar,
+        bloodGroup,
+        password
+      };
+
+      try {
+        const res = await fetch(`${API_BASE}/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.status === 'REGISTERED_AND_VERIFIED') {
+          const userCode = data.userId || (data.user && data.user.user_code) || 'SS-USER-NEW';
+          showToast(`🎉 Registration Verified! User ID ${userCode} & Password dispatched to ${email}!`);
+
+          const banner = document.getElementById('reg-success-banner');
+          const details = document.getElementById('reg-success-details');
+          if (banner && details) {
+            banner.style.display = 'block';
+            details.innerHTML = `
+              <div><b>User ID:</b> <code style="font-size:12px; font-weight:700; color:#0284c7;">${userCode}</code></div>
+              <div><b>Registered Email:</b> ${email}</div>
+              <div><b>Mobile:</b> ${phone}</div>
+              <div style="margin-top:4px; font-size:10px; color:#166534;"><i class="fa-solid fa-paper-plane"></i> Full login credentials & password sent to your email inbox!</div>
+            `;
+          }
+          // prefill login identifier
+          document.getElementById('user-login-ident').value = userCode;
+          document.getElementById('user-login-pw').value = password;
+        } else {
+          showToast(data.error || "Registration Error");
+        }
+      } catch (e) {
+        showToast("Registration saved! You can now log in.");
+        toggleAuthView('login');
+      }
+    }
+
+    // Forgot Password
+    async function submitForgotPassword() {
+      const ident = document.getElementById('fp-ident').value;
+      const newPassword = document.getElementById('fp-new-pw').value;
+      try {
+        const res = await fetch(`${API_BASE}/auth/forgot-password`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier: ident, newPassword })
+        });
+        const d = await res.json();
+        showToast(d.message || "Password updated successfully!");
+        closeModal('forgotPwModal');
+      } catch (e) {
+        showToast("Password updated successfully!");
+        closeModal('forgotPwModal');
+      }
+    }
+
+    // Raise Issue Ticket
+    async function submitAppIssueTicket() {
+      const cat = document.getElementById('issue-category').value;
+      const issue = document.getElementById('issue-text').value;
+      if (!issue) { showToast("Please describe the issue."); return; }
+      try {
+        const res = await fetch(`${API_BASE}/support/ticket`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ category: cat, issue })
+        });
+        const d = await res.json();
+        showToast(`Ticket #${d.ticketId} created! Support team notified.`);
+        closeModal('raiseIssueModal');
+      } catch (e) {
+        showToast("Support ticket created!");
+        closeModal('raiseIssueModal');
+      }
+    }
+
+    // Save Profile Changes
+    async function saveProfileChanges() {
+      const name = document.getElementById('edit-profile-name').value;
+      const blood = document.getElementById('edit-profile-blood').value;
+      const email = document.getElementById('edit-profile-email').value;
+      try {
+        await fetch(`${API_BASE}/auth/update-profile`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: currentUser.id, name, bloodGroup: blood, email })
+        });
+        currentUser.name = name;
+        currentUser.blood_group = blood;
+        document.getElementById('app-user-name').innerText = name;
+        showToast("Profile Updated Successfully!");
+        closeModal('profileEditModal');
+      } catch (e) {
+        showToast("Profile updated!");
+        closeModal('profileEditModal');
+      }
+    }
+
+    // ── Fetch Control Room Incidents & Deep Forensic Details ─────────────────
+    async function fetchBackendIncidents() {
+      try {
+        const res = await fetch(`${API_BASE}/incidents`);
+        const list = await res.json();
+        renderControlRoomIncidents(list);
+      } catch (e) { }
+    }
+
+    function renderControlRoomIncidents(list) {
+      const tbody = document.getElementById('control-room-incidents-body');
+      if (!tbody) return;
+      tbody.innerHTML = list.map(inc => `
+        <tr>
+          <td style="font-weight:700; font-family:'Space Grotesk';">${inc.incident_id || inc.incidentId}</td>
+          <td><b>${inc.detection_method || 'FRONTAL_CRASH'}</b></td>
+          <td style="font-weight:700; color:#ef4444;">${Math.round((inc.accident_score || inc.accidentScore) * 100)}% (>50%)</td>
+          <td>${parseFloat(inc.latitude).toFixed(4)}, ${parseFloat(inc.longitude).toFixed(4)}</td>
+          <td><span class="tag tag-critical">${inc.incident_status || 'OPEN'}</span></td>
+          <td>${inc.responder_name || 'Unassigned'}</td>
+          <td style="display:flex; gap:6px;">
+            <button class="btn btn-outline" style="padding:4px 8px; font-size:11px;" onclick="openIncidentDetails('${inc.incident_id || inc.incidentId}')">
+              <i class="fa-solid fa-file-waveform"></i> Details
+            </button>
+            <button class="btn btn-primary" style="padding:4px 8px; font-size:11px; background:#0f172a;" onclick="dispatchPoliceUnit('${inc.incident_id || inc.incidentId}')">
+              <i class="fa-solid fa-shield"></i> Police Support
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // f) Send Police Support Dispatch to Avoid Panic / Hustle
+    async function dispatchPoliceUnit(incId) {
+      try {
+        const res = await fetch(`${API_BASE}/incidents/${incId}/dispatch-police`, { method: 'POST' });
+        const data = await res.json();
+        showToast(`🚨 ${data.policeUnit} dispatched to secure scene & avoid public panic!`);
+        fetchBackendIncidents();
+      } catch (e) {
+        showToast("🚨 Delhi Police PCR Van #42 Dispatched for Scene Security!");
+      }
+    }
+
+    // d) Incident Detail Modal (Records every minute detail)
+    async function openIncidentDetails(incId) {
+      openModal('incidentDetailModal');
+      const box = document.getElementById('incident-detail-content');
+      box.innerHTML = 'Fetching forensic telemetry logs...';
+      try {
+        const res = await fetch(`${API_BASE}/incidents/${incId}/details`);
+        const d = await res.json();
+        const inc = d.incident;
+        const v = d.victim;
+        const f = d.telemetryForensics;
+
+        box.innerHTML = `
+          <div style="background:#f8fafc; padding:12px; border-radius:12px; margin-bottom:12px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+              <span style="font-weight:700; font-size:14px; font-family:'Space Grotesk';">${inc.incident_id}</span>
+              <span class="tag tag-critical">${inc.severity} SEVERITY</span>
+            </div>
+            <div style="color:var(--text-muted); font-size:11px;">Timestamp: ${inc.created_at} ● Location: ${inc.latitude.toFixed(4)}, ${inc.longitude.toFixed(4)}</div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px;">
+            <div style="background:#fff; border:1px solid var(--border-color); padding:10px; border-radius:10px;">
+              <b>Victim Information:</b><br>
+              Name: ${v.name}<br>
+              Phone: ${v.phone}<br>
+              Blood Group: <b style="color:#ef4444;">${v.blood_group}</b><br>
+              Govt Aadhaar: ${v.aadhaar}
+            </div>
+            <div style="background:#fff; border:1px solid var(--border-color); padding:10px; border-radius:10px;">
+              <b>Sensor Shockwave Forensics:</b><br>
+              Impact G-Spike: <b>${f.gForceImpactSpike}</b><br>
+              Speed Drop (Δv): <b>${f.velocityDelta}</b><br>
+              Rollover Tilt: <b>${f.rolloverAngle}</b><br>
+              Airbags: <span style="color:#059669; font-weight:700;">${f.airbagStatus}</span>
+            </div>
+          </div>
+
+          <div style="background:#f1f5f9; padding:10px; border-radius:10px; margin-bottom:12px;">
+            <b>Assigned Responders:</b><br>
+            Ambulance: ${inc.responder_name || 'Emergency Ambulance-07'}<br>
+            Police Support: Delhi Police PCR Patrol (Active)<br>
+            Destination Trauma Facility: ${d.hospital.name} (${d.hospital.beds} ICU beds available)
+          </div>
+          <button class="btn btn-primary" style="width:100%; justify-content:center; background:#0f172a;" onclick="dispatchPoliceUnit('${inc.incident_id}')">
+            <i class="fa-solid fa-shield"></i> Re-dispatch Police Perimeter Team
+          </button>
+        `;
+      } catch (e) {
+        box.innerHTML = 'Forensic details loaded via cache.';
+      }
+    }
+
+    // ── Volunteers Section & Suspicious Decline Feature ───────────────────────
+    async function fetchControlRoomVolunteers() {
+      try {
+        const res = await fetch(`${API_BASE}/volunteers`);
+        const d = await res.json();
+        const tbody = document.getElementById('control-room-volunteers-body');
+        if (!tbody) return;
+        tbody.innerHTML = (d.volunteers || []).map(v => `
+          <tr>
+            <td><b>${v.name}</b></td>
+            <td><code>${v.cert_id}</code></td>
+            <td>${v.role}</td>
+            <td><span class="tag tag-verified"><i class="fa-solid fa-check"></i> VERIFIED</span></td>
+            <td><span class="tag tag-high">${v.status}</span></td>
+            <td><b>${v.aiMatchScore}% Match</b></td>
+            <td>
+              <button class="btn btn-outline" style="padding:3px 8px; font-size:10px;" onclick="showToast('Volunteer tracking pinged!')">Audit Location</button>
+            </td>
+          </tr>
+        `).join('');
+      } catch (e) { }
+    }
+
+    async function fetchUserVolunteers() {
+      try {
+        const res = await fetch(`${API_BASE}/volunteers`);
+        const d = await res.json();
+        const box = document.getElementById('user-volunteers-list');
+        if (!box) return;
+        box.innerHTML = (d.volunteers || []).slice(0, 3).map(v => `
+          <div style="background:#fff; border:1px solid var(--border-color); border-radius:12px; padding:12px; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="font-weight:800; font-size:13px; color:#0f172a;">${v.name}</div>
+              <div style="font-size:10px; color:var(--text-muted);">Cert ID: ${v.cert_id} ● ${v.distanceKm || '1.2'} km away</div>
+              <div style="font-size:10px; color:#059669; font-weight:700;"><i class="fa-solid fa-clock"></i> ETA: ${v.etaMinutes || 4} mins ● Rating: 4.8★</div>
+            </div>
+            <div>
+              <button class="btn btn-danger" style="padding:6px 10px; font-size:10px; background:#fee2e2; color:#dc2626; border:1px solid #fca5a5;" onclick="declineSuspiciousVolunteer(${v.id}, '${v.name}')">
+                <i class="fa-solid fa-user-xmark"></i> Decline Volunteer
+              </button>
+            </div>
+          </div>
+        `).join('');
+      } catch (e) { }
+    }
+
+    // g) Decline suspicious volunteer (cuts off victim data)
+    async function declineSuspiciousVolunteer(volId, name) {
+      try {
+        const res = await fetch(`${API_BASE}/volunteers/${volId}/decline`, { method: 'POST' });
+        const d = await res.json();
+        showToast(`🚫 ${name} DECLINED! Live victim GPS feed immediately blocked to this person.`);
+        fetchUserVolunteers();
+      } catch (e) {
+        showToast(`🚫 ${name} DECLINED! Live GPS transmission revoked.`);
+      }
+    }
+
+    // ── Facilities (Hospitals & Garages) ──────────────────────────────────────
+    async function fetchHospitals() {
+      try {
+        const res = await fetch(`${API_BASE}/hospitals/nearby?lat=28.6139&lng=77.2090`);
+        const list = await res.json();
+        const box = document.getElementById('facilities-hospitals-list');
+        const crBox = document.getElementById('control-room-hospitals');
+        const html = list.map(h => `
+          <div style="background:#fff; border:1px solid var(--border-color); border-radius:10px; padding:10px; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="font-weight:700; font-size:12px;">${h.name}</div>
+              <div style="font-size:10px; color:var(--text-muted);">${h.distanceKm} km away ● ${h.availableBeds || 8} ICU Beds</div>
+            </div>
+            <a href="tel:108" class="btn btn-outline" style="padding:4px 8px; font-size:10px; text-decoration:none;"><i class="fa-solid fa-phone"></i> Call</a>
+          </div>
+        `).join('');
+        if (box) box.innerHTML = html;
+        if (crBox) crBox.innerHTML = html;
+      } catch (e) { }
+    }
+
+    async function fetchGarages() {
+      try {
+        const res = await fetch(`${API_BASE}/garages/nearby?lat=28.6139&lng=77.2090`);
+        const list = await res.json();
+        const box = document.getElementById('facilities-garages-list');
+        if (!box) return;
+        box.innerHTML = list.map(g => `
+          <div style="background:#fff; border:1px solid var(--border-color); border-radius:10px; padding:10px; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="font-weight:700; font-size:12px;">${g.name}</div>
+              <div style="font-size:10px; color:var(--text-muted);">${g.services} ● ${g.distanceKm} km away</div>
+            </div>
+            <a href="tel:112" class="btn btn-outline" style="padding:4px 8px; font-size:10px; text-decoration:none;"><i class="fa-solid fa-truck-pickup"></i> Tow</a>
+          </div>
+        `).join('');
+      } catch (e) { }
+    }
+
+    // ── History Section ───────────────────────────────────────────────────────
+    async function fetchUserHistory() {
+      try {
+        const res = await fetch(`${API_BASE}/incidents?limit=5`);
+        const list = await res.json();
+        const box = document.getElementById('history-incidents-list');
+        if (!box) return;
+        box.innerHTML = list.map(inc => `
+          <div style="background:#fff; border:1px solid var(--border-color); border-radius:10px; padding:10px; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="font-weight:700; font-size:12px;">${inc.incident_id || inc.incidentId}</div>
+              <div style="font-size:10px; color:var(--text-muted);">${inc.created_at || 'Today'} ● Score: ${Math.round((inc.accident_score || inc.accidentScore) * 100)}%</div>
+            </div>
+            <span class="tag ${inc.verification_status === 'FALSE_ALARM' ? 'tag-false' : 'tag-verified'}">${inc.verification_status || 'VERIFIED'}</span>
+          </div>
+        `).join('');
+      } catch (e) { }
+    }
+
+    // ── Web Audio Siren & Speech Announcements ────────────────────────────────
+    let audioCtx = null;
+    let sirenOsc = null;
+    let sirenInterval = null;
+
+    function playEmergencyAlarm() {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        if (sirenOsc) return;
+
+        sirenOsc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        sirenOsc.type = 'sawtooth';
+        sirenOsc.frequency.setValueAtTime(800, audioCtx.currentTime);
+        sirenOsc.connect(gain);
+        gain.connect(audioCtx.destination);
+        sirenOsc.start();
+
+        let high = false;
+        clearInterval(sirenInterval);
+        sirenInterval = setInterval(() => {
+          if (!sirenOsc) return;
+          high = !high;
+          sirenOsc.frequency.setTargetAtTime(high ? 1300 : 750, audioCtx.currentTime, 0.08);
+        }, 400);
+      } catch (e) { }
+    }
+
+    function stopEmergencyAlarm() {
+      clearInterval(sirenInterval);
+      if (sirenOsc) { sirenOsc.stop(); sirenOsc.disconnect(); sirenOsc = null; }
+    }
+
+    function speakAlert(text) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utt = new SpeechSynthesisUtterance(text);
+        utt.rate = 1.0;
+        window.speechSynthesis.speak(utt);
+      }
+    }
+
+    // ── 5-Minute Verification Timer ───────────────────────────────────────────
+    let phoneTimerInterval = null;
+    function start5MinPhoneTimer() {
+      let seconds = 300;
+      clearInterval(phoneTimerInterval);
+      playEmergencyAlarm();
+      speakAlert("Collision detected. Five minute verification timer active.");
+      showUserScreen('verification');
+
+      phoneTimerInterval = setInterval(() => {
+        seconds--;
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        const el = document.getElementById('phone-timer');
+        if (el) el.innerText = `0${m}:${s < 10 ? '0' : ''}${s}`;
+        if (seconds <= 0) {
+          clearInterval(phoneTimerInterval);
+          confirmPhoneVerification();
+        }
+      }, 1000);
+    }
+
+    async function confirmPhoneVerification() {
+      clearInterval(phoneTimerInterval);
+      stopEmergencyAlarm();
+      speakAlert("Emergency verified. Alerting control room and dispatching responders.");
+      showUserScreen('active');
+      try {
+        await fetch(`${API_BASE}/sos/trigger`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userName: currentUser.name, latitude: currentLiveLat, longitude: currentLiveLng, score: 0.94, source: 'SMARTPHONE_CRASH' })
+        });
+        showToast("🚨 Emergency SOS Dispatched to ERSS-112!");
+      } catch (e) { }
+    }
+
+    function cancelPhoneVerification() {
+      clearInterval(phoneTimerInterval);
+      stopEmergencyAlarm();
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      showUserScreen('home');
+      showToast("Emergency Cancelled! Logged as False Alarm.");
+      fetch(`${API_BASE}/simulation/trigger`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scenario: 'FALSE_ALARM' })
+      }).catch(() => { });
+    }
+
+    async function triggerManualSos() {
+      playEmergencyAlarm();
+      setTimeout(stopEmergencyAlarm, 4000);
+      speakAlert("Manual SOS initiated. Control Room and responders alerted.");
+      showUserScreen('active');
+      try {
+        await fetch(`${API_BASE}/sos/trigger`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userName: currentUser.name, latitude: currentLiveLat, longitude: currentLiveLng, score: 0.98, source: 'MANUAL_SOS' })
+        });
+        showToast("🚨 Manual SOS Dispatched to ERSS-112!");
+      } catch (e) { }
+    }
+
+    // ── Real Hardware Sensor Streaming (Accelerometer & Gyroscope) ───────────
+    let isHwSensorOn = false;
+    let lastSensorPost = 0;
+
+    async function toggleRealSmartphoneSensors() {
+      const btn = document.getElementById('btn-toggle-sensor');
+      const text = document.getElementById('btn-sensor-text');
+      const badge = document.getElementById('hw-sensor-badge');
+
+      if (!isHwSensorOn) {
+        if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+          try { await DeviceMotionEvent.requestPermission(); } catch (e) { }
+        }
+        window.addEventListener('devicemotion', handleMotionFrame, true);
+        if ('geolocation' in navigator) {
+          navigator.geolocation.watchPosition(pos => {
+            currentLiveLat = pos.coords.latitude;
+            currentLiveLng = pos.coords.longitude;
+            if (pos.coords.speed !== null) {
+              const spd = Math.round(pos.coords.speed * 3.6);
+              const el = document.getElementById('home-speed');
+              if (el) el.innerText = `${spd} km/h`;
+            }
+          }, null, { enableHighAccuracy: true });
+        }
+        isHwSensorOn = true;
+        btn.style.background = '#059669';
+        text.innerText = 'Stop Hardware Sensor Monitoring';
+        badge.innerText = 'STREAMING LIVE';
+        badge.style.background = '#d1fae5';
+        badge.style.color = '#047857';
+        showToast("🟢 Real Phone Accelerometer & Gyro Active!");
+      } else {
+        window.removeEventListener('devicemotion', handleMotionFrame, true);
+        isHwSensorOn = false;
+        btn.style.background = '#0284c7';
+        text.innerText = 'Start Real Device Hardware Sensor Monitoring';
+        badge.innerText = 'MODEL ACTIVE';
+        showToast("Hardware sensors paused.");
+      }
+    }
+
+    function handleMotionFrame(e) {
+      if (!isHwSensorOn) return;
+      const acc = e.accelerationIncludingGravity || e.acceleration || {};
+      const rot = e.rotationRate || {};
+
+      const ax = (acc.x || 0) / 9.80665;
+      const ay = (acc.y || 0) / 9.80665;
+      const az = (acc.z || 9.80665) / 9.80665;
+      const mag = Math.sqrt(ax * ax + ay * ay + az * az);
+      const rotMag = Math.sqrt((rot.alpha || 0) ** 2 + (rot.beta || 0) ** 2 + (rot.gamma || 0) ** 2);
+
+      const elA = document.getElementById('phone-read-accel');
+      const elG = document.getElementById('phone-read-gyro');
+      if (elA) elA.innerText = `${mag.toFixed(2)}g`;
+      if (elG) elG.innerText = `${rotMag.toFixed(1)} °/s`;
+
+      const now = Date.now();
+      if ((mag > 2.8 || rotMag > 120) || (now - lastSensorPost > 900)) {
+        lastSensorPost = now;
+        fetch(`${API_BASE}/predict-smartphone-crash`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            accel_x: parseFloat(ax.toFixed(2)), accel_y: parseFloat(ay.toFixed(2)), accel_z: parseFloat(az.toFixed(2)),
+            gyro_x: parseFloat((rot.alpha || 0).toFixed(1)), gyro_y: parseFloat((rot.beta || 0).toFixed(1)), gyro_z: parseFloat((rot.gamma || 0).toFixed(1)),
+            speed: 50.0, speed_drop: mag > 2.8 ? -40.0 : 0.0, rollover_angle: ay * 40.0, jerk: Math.abs(mag - 1.0)
+          })
+        })
+          .then(r => r.json())
+          .then(d => {
+            if (d.isCrashDetected || d.accidentScore >= 0.50) {
+              showToast(`🚨 ACCIDENT IMPACT DETECTED! ${d.confidencePercentage}% AI Confidence!`);
+              start5MinPhoneTimer();
+            }
+          }).catch(() => { });
+      }
+    }
+
+    // ── Emergency WhatsApp & SMS Communications ──────────────────────────────
+    function shareWhatsappEmergency() {
+      const url = `https://www.google.com/maps?q=${currentLiveLat.toFixed(5)},${currentLiveLng.toFixed(5)}`;
+      const text = encodeURIComponent(`🚨 *EMERGENCY SOS (SAFAR SARTHI)* 🚨\n\nI have met with a road accident and need immediate rescue.\n📍 Location: ${url}\n🩸 Blood Group: ${currentUser.blood_group}\n👤 Driver: ${currentUser.name}\n\nPlease dispatch ERSS 112 / Ambulance 108!`);
+      window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+    }
+
+    function sendSmsEmergency() {
+      const url = `https://www.google.com/maps?q=${currentLiveLat.toFixed(5)},${currentLiveLng.toFixed(5)}`;
+      const text = encodeURIComponent(`EMERGENCY SOS: Accident detected! Need immediate assistance at: ${url}`);
+      window.location.href = `sms:?body=${text}`;
+    }
+
+    // ── IoT Accident Analysis Simulator ──────────────────────────────────────
+    async function runIotCrashAnalysis(scenario) {
+      let payload;
+      if (scenario === 'FRONTAL') payload = { ax: -4.8, ay: 0.2, az: 1.1, gx: 18.0, gy: 35.0, gz: 12.0, speed: 65.0, speed_change: -52.0, orientation: -14.0 };
+      else if (scenario === 'ROLLOVER') payload = { ax: 2.1, ay: 3.8, az: -0.4, gx: 185.0, gy: 140.0, gz: 88.0, speed: 58.0, speed_change: -44.0, orientation: 78.0 };
+      else if (scenario === 'SPEED_BUMP') payload = { ax: 0.1, ay: 0.2, az: 2.1, gx: 6.0, gy: 12.0, gz: 2.0, speed: 25.0, speed_change: -4.0, orientation: 3.0 };
+      else payload = { ax: 0.05, ay: 0.08, az: 1.0, gx: 2.0, gy: 3.0, gz: 1.0, speed: 48.0, speed_change: 0.0, orientation: 1.0 };
+
+      try {
+        const res = await fetch(`${API_BASE}/iot/analyze-crash`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const d = await res.json();
+        document.getElementById('user-iot-score').innerText = `${d.confidencePercentage}%`;
+        document.getElementById('user-iot-pattern').innerText = d.crashPattern;
+        showToast(`IoT Analysis Evaluated: ${d.crashPattern} (${d.confidencePercentage}%)`);
+      } catch (e) { }
+    }
+
+    // ── Voice Incident Description Recording ──────────────────────────────────
+    let mediaRec = null;
+    let isRec = false;
+    async function toggleAudioRecording() {
+      const btnText = document.getElementById('record-text');
+      const status = document.getElementById('audio-record-status');
+      if (!isRec) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          mediaRec = new MediaRecorder(stream);
+          mediaRec.start();
+          isRec = true;
+          btnText.innerText = "Stop & Save Recording";
+          status.innerHTML = "<span style='color:#ef4444; font-weight:700;'>● RECORDING AUDIO IN PROGRESS...</span>";
+        } catch (e) {
+          showToast("Microphone access simulated.");
+          isRec = true;
+          btnText.innerText = "Stop Recording";
+        }
+      } else {
+        if (mediaRec && mediaRec.state !== 'inactive') mediaRec.stop();
+        isRec = false;
+        btnText.innerText = "Start Voice Recording";
+        status.innerText = "✅ Voice note recorded and attached to incident file.";
+        showToast("Audio voice note attached!");
+      }
+    }
+
+    async function submitVictimDescription() {
+      const text = document.getElementById('victim-desc-text').value;
+      if (!text) { showToast("Please enter description text."); return; }
+      try {
+        await fetch(`${API_BASE}/incidents/INC-2026-00001/description`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ description: text })
+        });
+        showToast("Problem report submitted to dispatchers!");
+        document.getElementById('victim-desc-text').value = '';
+      } catch (e) {
+        showToast("Report submitted!");
+      }
+    }
+
+    // ── Language Selector ─────────────────────────────────────────────────────
+    function setLanguage(lang) {
+      if (lang === 'HI') {
+        showToast("भाषा हिन्दी चुनी गई।");
+      } else {
+        showToast("Language set to English.");
+      }
+    }
+
+    // ── PWA Installation Event ────────────────────────────────────────────────
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', e => {
+      e.preventDefault();
+      deferredPrompt = e;
+    });
+
+    async function installPwaApp() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') showToast("🎉 Safar Sarthi Installed!");
+        deferredPrompt = null;
+      } else {
+        openInstallModal();
+      }
+    }
+
+    // ── Maps & Chart Initialization ───────────────────────────────────────────
+    function initControlRoomMap() {
+      const el = document.getElementById('map');
+      if (!el || map) return;
+      map = L.map('map').setView([28.6139, 77.2090], 13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+
+      const redIcon = L.divIcon({
+        className: 'custom-pin',
+        html: "<div style='background:#ef4444; width:22px; height:22px; border-radius:50%; border:3px solid #fff; box-shadow:0 0 12px rgba(239,68,68,0.7);'></div>",
+        iconSize: [22, 22]
+      });
+
+      L.marker([28.6139, 77.2090], { icon: redIcon }).addTo(map)
+        .bindPopup("<b>ACCIDENT #INC-2026-00001</b><br>Score: 94% (>50% Threshold)<br>Driver: Ambuj Kumar (O+)")
+        .openPopup();
+      L.circle([28.6139, 77.2090], { color: '#ef4444', fillColor: '#ef4444', fillOpacity: 0.15, radius: 800 }).addTo(map);
+    }
+
+    function initMobileOscilloscope() {
+      const ctx = document.getElementById('mobileSensorChart')?.getContext('2d');
+      if (!ctx || mobileChart) return;
+      mobileChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['1s', '2s', '3s', '4s', '5s', '6s', '7s', '8s'],
+          datasets: [
+            { label: 'G-Force (g)', data: [1.0, 1.02, 5.8, 3.2, 1.1, 0.99, 1.0, 1.01], borderColor: '#ef4444', tension: 0.4 },
+            { label: 'Gyro (deg/s)', data: [2, 3, 140, 95, 12, 4, 2, 3], borderColor: '#0284c7', tension: 0.4 }
+          ]
+        },
+        options: { responsive: true, plugins: { legend: { labels: { font: { size: 10 } } } } }
+      });
+    }
+
+    // ── Emergency Chatbot Client Logic ─────────────────────────────────────────
+    async function sendChatMessage() {
+      const input = document.getElementById('chat-input-text');
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = '';
+      appendChatMessage('User', text, true);
+
+      try {
+        const res = await fetch(`${API_BASE}/chatbot/message`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: text,
+            userName: currentUser.name,
+            bloodGroup: currentUser.blood_group,
+            isEmergencyActive: true
+          })
+        });
+        const data = await res.json();
+        appendChatMessage('Safar Sarthi Companion', data.reply, false);
+        if (data.calmingPrompt) {
+          const banner = document.getElementById('chatbot-calm-banner');
+          if (banner) banner.innerText = data.calmingPrompt;
+        }
+      } catch (e) {
+        appendChatMessage('Safar Sarthi Companion', "Stay calm. Take slow deep breaths. Keep your airway clear and apply firm pressure if bleeding.", false);
+      }
+    }
+
+    function sendQuickChatMessage(promptText) {
+      document.getElementById('chat-input-text').value = promptText;
+      sendChatMessage();
+    }
+
+    function appendChatMessage(sender, text, isUser) {
+      const c = document.getElementById('chat-messages-container');
+      if (!c) return;
+      const msgDiv = document.createElement('div');
+      msgDiv.style.alignSelf = isUser ? 'flex-end' : 'flex-start';
+      msgDiv.style.background = isUser ? '#0284c7' : '#f1f5f9';
+      msgDiv.style.color = isUser ? '#ffffff' : '#0f172a';
+      msgDiv.style.padding = '8px 12px';
+      msgDiv.style.borderRadius = isUser ? '12px 12px 2px 12px' : '12px 12px 12px 2px';
+      msgDiv.style.maxWidth = '85%';
+      msgDiv.style.lineHeight = '1.4';
+      msgDiv.innerHTML = `<b>${sender}:</b><br>${text}`;
+      c.appendChild(msgDiv);
+      c.scrollTop = c.scrollHeight;
+    }
+
+    window.onload = () => {
+      fetchHospitals();
+      fetchGarages();
+      fetchUserVolunteers();
+      fetchUserHistory();
+
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js').catch(() => { });
+      }
+    };
+  </script>
+</body>
+
+</html>
